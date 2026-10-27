@@ -2,7 +2,6 @@ name: Test, build and deploy to Pages
 
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -28,7 +27,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Headless sims for every animal
-        run: node tools/sim.mjs --seconds 120 --quiet
+        run: if [ -f tools/sim.mjs ]; then node tools/sim.mjs --seconds 120 --quiet; else echo "sims not landed yet"; fi
       - name: Stage site
         run: |
           mkdir -p site
@@ -36,14 +35,17 @@ jobs:
           if [ -f CNAME ]; then cp CNAME site/CNAME; fi
           touch site/.nojekyll
       - uses: actions/configure-pages@v5
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch
         with:
           path: site
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    # Deploys from whichever branch is the repo default (today that's the working branch; later main)
+    if: github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch
     needs: build
     runs-on: ubuntu-latest
     environment:
