@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#ffcf8a">
+<meta name="description" content="%%TAGLINE%%">
+<title>%%NAME%%</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='38' r='16' fill='%23e8c27a'/%3E%3Ccircle cx='16' cy='20' r='7' fill='%23e8c27a'/%3E%3Ccircle cx='28' cy='12' r='7' fill='%23e8c27a'/%3E%3Ccircle cx='40' cy='12' r='7' fill='%23e8c27a'/%3E%3Ccircle cx='52' cy='20' r='7' fill='%23e8c27a'/%3E%3C/svg%3E">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #ffd9a0; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  #game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #float { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  #ui { position: fixed; inset: 0; pointer-events: none; }
+  #ui > * { pointer-events: auto; }
+  #boot { position: fixed; inset: 0; display: grid; place-items: center; background: linear-gradient(#ffcf8a, #ff9f7a); font: 800 6vh/1 system-ui, sans-serif; color: #fff; text-shadow: 0 0.4vh 0 #e0785a; transition: opacity .5s; }
+  body.ready #boot { opacity: 0; pointer-events: none; }
+  #rotate { display: none; position: fixed; inset: 0; z-index: 99; background: linear-gradient(#ffcf8a, #ff9f7a); color: #fff; font: 800 6vw/1.2 system-ui, sans-serif; text-align: center; place-items: center; padding: 8vw; box-sizing: border-box; }
+  #rotate .phone { width: 18vw; height: 30vw; border: 1.6vw solid #fff; border-radius: 3vw; margin: 0 auto 6vw; animation: tilt 2.2s ease-in-out infinite; }
+  @keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+  @media (orientation: portrait) and (pointer: coarse) { #rotate { display: grid; } }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="float"></div>
+<div id="ui"></div>
+<div id="boot">%%NAME%%</div>
+<div id="rotate"><div><div class="phone"></div>Turn your phone sideways for the full gobble.</div></div>
+<script>window.__ASSETS__ = %%ASSETS%%; window.__ASSETS_META__ = %%ASSETS_META%%;</script>
+<script>%%SCRIPT%%</script>
+</body>
+</html>

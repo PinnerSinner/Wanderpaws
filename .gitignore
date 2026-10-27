@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.out/
+*.log
+.DS_Store
+Thumbs.db
+# personal originals and scratch never get pushed
+assets/user/**/originals/
+assets/user/**/_scratch/
+scratch/
+shots/

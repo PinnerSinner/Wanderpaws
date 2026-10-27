@@ -1,0 +1,21 @@
+{
+  "name": "gobblepaws",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A cosy 3D collect-and-grow animal game. Gobble everything smaller than you.",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "watch": "node tools/build.mjs --watch",
+    "test": "node --test --test-concurrency=4",
+    "sim": "node tools/sim.mjs",
+    "shots": "node tools/screenshots.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  },
+  "license": "UNLICENSED"
+}
