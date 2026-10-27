@@ -3,7 +3,7 @@
 import { CATALOGUE } from '../../src/worlds/catalogue.js';
 import { expandItems } from '../../src/worlds/layout.js';
 
-export function estimatePacing(world, { seed = 7, comboMult = 1.15, speedMult = 1.35, overhead = 0.35, maxTime = 900 } = {}) {
+export function estimatePacing(world, { seed = 7, comboMult = 1.15, speedMult = 1.35, overhead = 0.55, maxTime = 900 } = {}) {
   const list = expandItems(world, seed).filter((i) => !i.hidden).map((i) => ({ ...i, size: CATALOGUE[i.type].size, gone: false }));
   let s = world.goals.start, x = world.spawn.x, z = world.spawn.z, t = 0, n = 0;
   const k = world.goals.growthK;
@@ -23,11 +23,11 @@ export function estimatePacing(world, { seed = 7, comboMult = 1.15, speedMult = 
     const it = list[best];
     const d = Math.max(0, Math.hypot(it.x - x, it.z - z) - (0.6 * s + it.size / 2));
     const v = 4.6 * Math.pow(s, 0.85) * speedMult;
-    t += d / v + overhead * Math.min(1, s) * 0 + 0.12;
+    t += d / v + overhead;
     x = it.x; z = it.z; it.gone = true; n++;
     s = Math.cbrt(s ** 3 + k * it.size ** 3 * comboMult * (CATALOGUE[it.type].food ? 1 : 1));
     if (out.goalT == null && s >= world.goals.goal) { out.goalT = t; out.gobblesToGoal = n; }
-    if (out.stretchT == null && s >= world.goals.stretch) out.stretchT = t;
+    if (out.stretchT == null && s >= world.goals.stretch) { out.stretchT = t; out.gobblesToStretch = n; }
   }
   out.final = s; out.gobbles = n; out.t = t;
   return out;

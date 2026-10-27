@@ -105,7 +105,7 @@ attribute float aWing;
     float gpPhase = float( gl_InstanceID ) * 1.618;
     float gpFlap = sin( gpTime * ( 9.0 + mod( gpPhase, 3.0 ) ) + gpPhase * 6.0 );
     float gpA = gpFlap * 0.9 * abs( aWing );
-    float gpC = cos( gpA ), gpSn = sin( gpA ) * sign( aWing );
+    float gpC = cos( gpA ), gpSn = sin( gpA );
     vec2 xy = transformed.xy;
     transformed.x = xy.x * gpC;
     transformed.y = xy.y + abs( xy.x ) * gpSn;

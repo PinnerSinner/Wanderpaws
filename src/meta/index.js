@@ -39,7 +39,7 @@ function normStars(s) {
 
 function cleanName(name) {
   // Strip control characters, collapse whitespace, cap the length.
-  const s = String(name ?? '').replace(/[\u0000-\u001f\u007f-\u009f]/g, '').replace(/\s+/g, ' ').trim();
+  const s = String(name ?? '').replace(/\s+/g, ' ').replace(/[\u0000-\u001f\u007f-\u009f]/g, '').trim();
   return Array.from(s).slice(0, NAME_MAX).join('');
 }
 
@@ -222,7 +222,7 @@ export function createProfile(storage, opts = {}) {
         }
         d.journal[type] = (d.journal[type] || 0) + 1;
         if (golden) { markGolden(it?.goldenOf || type, r.worldId, r); dirty = true; unlocks = true; }
-        r.bicGobbles += gobbleBiccies(type, { golden, special: r.special === type });
+        r.bicGobbles += gobbleBiccies(type, { golden, special: !!ev.special || r.special === type });
         if (type === 'teamug' || it?.goldenOf === 'teamug') { r.teaMugs++; updTea(r); }
         if (ev.combo) combo(r, ev.combo);
         if (ev.size > r.maxSize) r.maxSize = ev.size;

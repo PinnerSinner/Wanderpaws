@@ -14,9 +14,10 @@
 // Sugarloaf sits on the horizon to the south-west.
 
 import { box, cyl, scen, strip, span, wall, at, row, ring, cluster, sstep, lerp, hill, ripple, rect01, PI, HALF_PI } from './util.js';
+import { settleAnchors } from './layout.js';
 import { makeEggsW1 } from './eggs/w1.js';
 
-const SEA_LEVEL = -0.25;
+const SEA_LEVEL = -0.3;
 const CITY_H = 0.4;
 
 // Key positions (shared with the eggs).
@@ -27,12 +28,12 @@ export const P = {
   tower: { x: -12, z: -15.5 },
   net: { x: 24, z: -16 }, ball: { x: 20.5, z: -16 },
   vnet: { x: -48, z: -16 },
-  castle: { x: -28, z: -20.5 },
+  castle: { x: -28, z: -18.6 },
   hut: { x: 65, z: -19 },
   caipi: { x: -56, z: -5.2 },
   coconut: { x: 32, z: -5.2 },
-  reader: { x: -3, z: -19.5 },
-  penguin: { x: 47.4, z: -20.4 },
+  reader: { x: -3, z: -18.5 },
+  penguin: { x: 47.4, z: -19.2 },
   mosaic: { x: -20, z: -3.5 },
   pool: { minX: 26, maxX: 35, minZ: 41.5, maxZ: 46.5 },
   fireworks: { x: 0, z: -120 },
@@ -184,7 +185,7 @@ const anchors = [
   // Magellanic penguin's parasol (C7)
   at('parasol', P.penguin.x + 1.1, P.penguin.z - 1.1), at('towel', P.penguin.x + 0.4, P.penguin.z + 0.6), at('icelolly', P.penguin.x - 0.8, P.penguin.z + 0.3),
   // sunbathers' camps: towel, parasol, cool box, flip-flops, sun hat
-  ...[[-20, -14], [-5, -16.5], [6, -18], [36, -17], [-40, -20], [50, -16], [-62, -14], [-3, -19.5]].flatMap(([x, z], i) => [
+  ...[[-20, -14], [-5, -16], [6, -17.2], [36, -16.5], [-40, -18.4], [50, -15.5], [-62, -14], [-3, -18.2]].flatMap(([x, z], i) => [
     at('towel', x, z, { rot: i * 0.7 }), at('parasol', x + 1.8, z - 0.8), at('flipflop', x - 1.2, z + 0.9, { rot: i }),
     at(i % 2 ? 'coolbox' : 'sunhat', x + 1.5, z + 1.2), at('sunglasses', x - 0.6, z - 1.1),
   ]),
@@ -200,15 +201,16 @@ const anchors = [
   ...cluster(['kiosktable', 'pastel', 'biscuitpacket', 'bottlecap', 'brigadeiro', 'icelolly'], -23, 34, 2.5, 6, 'pad2'),
   ...cluster(['bottlecap', 'pastel', 'biscuitpacket', 'cable'], -23, 44, 3, 8, 'pad3'),
   // back lanes
-  ...cluster(['bottlecap', 'coolbox', 'cable', 'router', 'bicycle', 'flipflop'], -45, 44, 8, 10, 'lane1'),
-  ...cluster(['bottlecap', 'cable', 'surfboard', 'coolbox', 'parasol'], 54, 44, 7, 8, 'lane2'),
+  ...cluster(['bottlecap', 'coolbox', 'cable', 'router', 'bicycle', 'flipflop'], -45, 44, 4.5, 10, 'lane1'),
+  ...cluster(['bottlecap', 'cable', 'surfboard', 'coolbox', 'parasol'], 54, 44, 4.5, 8, 'lane2'),
   // the secret pool courtyard: party leftovers and a golden rubber duck
-  ...cluster(['brigadeiro', 'pastel', 'caipirinha', 'sunglasses', 'brigadeiro', 'bottlecap', 'icelolly', 'teamug'], 30, 39, 3.5, 22, 'pool1'),
-  ...cluster(['towel', 'deckchair', 'lifebuoy', 'sunhat', 'beachball'], 30, 48.5, 4, 7, 'pool2'),
+  ...cluster(['brigadeiro', 'pastel', 'caipirinha', 'sunglasses', 'brigadeiro', 'bottlecap', 'icelolly', 'teamug'], 30, 39.4, 1.6, 12, 'pool1'),
+  ...cluster(['brigadeiro', 'pastel', 'sunglasses', 'bottlecap'], 25, 44, 1.8, 10, 'pool3'),
+  ...row('deckchair', 27, 48.4, 34, 48.4, 4, { rot: PI }), at('towel', 36.8, 44), at('lifebuoy', 36.8, 41.5), at('sunhat', 24.5, 41),
   at('rubberduck', 30.5, 44, { golden: true }), at('rubberduck', 33, 43), at('rubberduck', 28, 45.5),
   // the cove behind the rocks: shells, a stray surfboard, coconuts
   ...cluster(['seashell', 'seashell', 'coconut', 'flipflop', 'seashell', 'bottlecap'], 65, -14, 4, 14, 'cove'),
-  at('surfboard', 66, -24, { rot: 1 }), at('sunhat', 63, -22), at('rubberduck', 64, -27),
+  at('surfboard', 66, -20.5, { rot: 1 }), at('sunhat', 63, -12), at('rubberduck', 64, -27),
   // rubber ducks bobbing in the shallows
   ...[[-50, -23], [-15, -24], [18, -25], [40, -24], [-35, -26]].map(([x, z]) => at('rubberduck', x, z)),
   // tourist tea (G8)
@@ -239,11 +241,11 @@ export const W1 = {
   spawn: { x: P.spawn.x, z: P.spawn.z, yaw: HALF_PI },
   heightAt, surfaceAt,
   water: [
-    { kind: 'sea', level: SEA_LEVEL, rect: { minX: -700, maxX: 700, minZ: -700, maxZ: -17 }, tide: { amp: 0.2, period: 80 } },
+    { kind: 'sea', level: SEA_LEVEL, rect: { minX: -700, maxX: 700, minZ: -700, maxZ: -17 }, tide: { amp: 0.15, period: 80 } },
     { kind: 'pond', level: 0.2, rect: { ...P.pool } },
   ],
   colliders, scenery,
-  items: { anchors, fill },
+  items: { anchors: settleAnchors(anchors, colliders), fill },
   zones: [
     { id: 'hut127', x: P.hut.x, z: P.hut.z, r: 1.2 },
     { id: 'coconut', x: P.coconut.x, z: P.coconut.z + 1.8, r: 1.6 },
@@ -276,7 +278,7 @@ export const W1 = {
     { id: 'reader', speaker: 'reader', kind: 'human', mesh: 'reader', x: P.reader.x, z: P.reader.z, yaw: 0.3, behaviour: 'idle', params: { anim: 'read' } },
   ],
   crowd: [
-    ...[[-20, -14], [-5, -16.5], [6, -18], [36, -17], [-40, -20], [50, -16], [-62, -14]].map(([x, z], i) => (
+    ...[[-20, -14], [-5, -16], [6, -17.2], [36, -16.5], [-40, -18.4], [50, -15.5], [-62, -14]].map(([x, z], i) => (
       { id: `sb${i + 1}`, kind: 'sunbather', x, z, yaw: i, behaviour: 'idle', params: { anim: 'lie', react: 'wave', reactR: 2 } })),
     { id: 'fv1', kind: 'footvolleyer', x: P.net.x - 5, z: P.net.z + 2, yaw: HALF_PI, behaviour: 'react', params: { react: 'cheer', r: 5 } },
     { id: 'fv2', kind: 'footvolleyer', x: P.net.x - 5, z: P.net.z - 2, yaw: HALF_PI, behaviour: 'react', params: { react: 'cheer', r: 5 } },

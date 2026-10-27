@@ -5,7 +5,7 @@ import { h, fromHTML } from './dom.js';
 import { icon, ICONS } from './icons.js';
 import { portraitSVG } from './art.js';
 import { t } from '../core/copy/index.js';
-import { formatInt } from './logic.js';
+import { formatInt, statBar } from './logic.js';
 import { tokenColour, initials } from './data.js';
 
 export function btn(ctx, label, opts = {}) {
@@ -152,4 +152,13 @@ export function splitPanel(cls, body, foot) {
 
 export function empty(iconName, text) {
   return h('div', { class: 'gp-empty' }, icon(iconName), h('div', null, text));
+}
+
+export const STAT_KEYS = ['speed', 'accel', 'turn', 'jump', 'reach', 'startSize', 'waterSpeed'];
+export function statBarsEl(sp, keys = STAT_KEYS) {
+  return h('div', { class: 'gp-statbars' }, keys.map((k, i) => {
+    const v = sp?.stats?.[k] ?? 1;
+    return h('div', { class: 'gp-statbar' }, h('span', null, t(`ui.stat.${k}`)),
+      h('span', { class: 'gp-bar' }, h('i', { class: v > 1.04 ? 'gp-hi' : '', vars: { v: statBar(v).toFixed(3), i } })));
+  }));
 }

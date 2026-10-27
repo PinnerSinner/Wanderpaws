@@ -128,6 +128,7 @@ export function unpackGhost(rec) {
   try {
     const stride = rec.stride || 5;
     const arr = decodeSamples(rec.d, stride);
+    if (!arr.length || (rec.frames != null && Math.floor(arr.length / stride) !== rec.frames)) return null;
     arr.stride = stride;
     arr.every = rec.every || 2;
     arr.frames = Math.floor(arr.length / stride);

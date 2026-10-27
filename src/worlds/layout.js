@@ -90,3 +90,36 @@ export function countNear(list, catalogue, x, z, r, maxSize) {
   }
   return n;
 }
+
+// Push hand-placed anchors out of tall colliders (top above maxH), so a cluster
+// that spills into a tree trunk or a wall ends up just outside it. Returns the array.
+export function settleAnchors(anchors, colliders, maxH = 1.5, margin = 0.25) {
+  for (const a of anchors) {
+    for (let pass = 0; pass < 3; pass++) {
+      let moved = false;
+      for (const c of colliders) {
+        if ((c.h || 0) <= maxH || c.pass) continue;
+        if (!insideCollider(c, a.x, a.z, margin * 0.5)) continue;
+        if (c.kind === 'cyl') {
+          let dx = a.x - c.x, dz = a.z - c.z;
+          const d = Math.hypot(dx, dz) || 1;
+          if (d < 1e-3) { dx = 1; dz = 0; }
+          a.x = c.x + (dx / d) * (c.r + margin);
+          a.z = c.z + (dz / d) * (c.r + margin);
+        } else {
+          const cr = Math.cos(c.rot || 0), sr = Math.sin(c.rot || 0);
+          const dx = a.x - c.x, dz = a.z - c.z;
+          let lx = dx * cr - dz * sr, lz = dx * sr + dz * cr;
+          const ox = c.w / 2 - Math.abs(lx), oz = c.d / 2 - Math.abs(lz);
+          if (ox < oz) lx = Math.sign(lx || 1) * (c.w / 2 + margin);
+          else lz = Math.sign(lz || 1) * (c.d / 2 + margin);
+          a.x = c.x + lx * cr + lz * sr;
+          a.z = c.z - lx * sr + lz * cr;
+        }
+        moved = true;
+      }
+      if (!moved) break;
+    }
+  }
+  return anchors;
+}
