@@ -5,6 +5,7 @@ import { CATALOGUE } from '../worlds/catalogue.js';
 import { compileRegion, inRegion, normPath } from './util.js';
 import { throwBall } from './npcs.js';
 import { IS_GONE, IS_GOBBLING } from './items.js';
+import { hypot } from './util.js';
 
 export const ACTIVITY_KINDS = ['fetch', 'herding', 'sniffTrail', 'sitStay'];
 
@@ -61,12 +62,12 @@ export function stepActivities(S, dt) {
     for (let k = 0; k < Ac.list.length; k++) {
       const A = Ac.list[k];
       if (A.cd > 0) continue;
-      const d = Math.hypot(p.x - A.x, p.z - A.z);
+      const d = hypot(p.x - A.x, p.z - A.z);
       const r = +(A.params.r || 3) + p.size;
       if (A.kind === 'fetch') {
         if (A.thrower === undefined) A.thrower = S.npcs.index(A.params.thrower || 'marco') || S.npcs.list.find((n) => n.behaviour === 'marco') || null;
         const thrower = A.thrower;
-        const td = thrower ? Math.hypot(p.x - thrower.x, p.z - thrower.z) : Infinity;
+        const td = thrower ? hypot(p.x - thrower.x, p.z - thrower.z) : Infinity;
         if (playBowNow && (d < r * 2 || td < 5 + p.size * 2)) {
           const from = thrower || { x: A.x, y: S.terrain.heightAt(A.x, A.z), z: A.z, yaw: 0 };
           const yaw = Math.atan2(p.x - from.x, p.z - from.z) + Ac.rng.range(-0.5, 0.5);
@@ -106,7 +107,7 @@ export function stepActivities(S, dt) {
     const limit = +(A.params.time || 10);
     if (b >= 0 && P.kind[b] === 1) {
       const dy = P.y[b] - (p.y + S.derived.height * 0.6);
-      const dd = Math.hypot(P.x[b] - p.x, dy, P.z[b] - p.z);
+      const dd = hypot(P.x[b] - p.x, dy, P.z[b] - p.z);
       if (dd < S.derived.reachBase + 0.35) {
         const gy = S.terrain.heightAt(P.x[b], P.z[b]);
         const airborne = P.y[b] > gy + 0.3;
@@ -122,7 +123,7 @@ export function stepActivities(S, dt) {
     let inRing = 0;
     const scare = 2.2 + p.size * 1.5;
     for (const n of A.pigeons) {
-      const dx = n.x - p.x, dz = n.z - p.z, d = Math.hypot(dx, dz) || 1;
+      const dx = n.x - p.x, dz = n.z - p.z, d = hypot(dx, dz) || 1;
       let vx = 0, vz = 0;
       if (d < scare) { vx = dx / d * 2.2; vz = dz / d * 2.2; }
       if (R.barked && d < 7 + p.size * 3) { vx += dx / d * 5; vz += dz / d * 5; }

@@ -4,6 +4,7 @@
 import { EV } from '../core/events.js';
 import { angleDelta, wrapAngle } from '../core/math.js';
 import { NPC_ANIMS_SET, normPath } from './util.js';
+import { hypot } from './util.js';
 
 const HUMAN_KINDS = new Set(['marco', 'kev', 'ze', 'pru', 'packet', 'hologrammarco', 'sunbather', 'jogger', 'cyclist', 'tourist', 'footvolleyer', 'vendor', 'kid', 'commuter', 'queuer', 'sentry', 'birdwatcher', 'hiker', 'piper', 'skier', 'curler', 'techie', 'reader']);
 // height, radius (metres) for critters; humans are 1.75 x 0.3
@@ -25,7 +26,8 @@ export function createNpcs(S) {
     const human = def.human != null ? !!def.human : (def.kind === 'human' || HUMAN_KINDS.has(kind));
     const dims = human ? [1.75, 0.3] : (CRITTER_DIMS[kind] || [0.4, 0.2]);
     const params = def.params || {};
-    const y = S.terrain.heightAt(+def.x || 0, +def.z || 0);
+    const perchY = +(params.perchY || 0);
+    const y = S.terrain.heightAt(+def.x || 0, +def.z || 0) + perchY;
     const n = {
       id: def.id || `${kind}${list.length}`,
       kind, human,
@@ -45,9 +47,11 @@ export function createNpcs(S) {
       reactR: +(params.reactR || params.r || 3.5),
       reactT: 0, near: false, fleeT: 0, calm: 0,
       height: dims[0], radius: dims[1], solid: dims[1] > 0 && kind !== 'hologrammarco',
-      fly: 0, flyFrom: null, state: 0, hazard: -1, throwT: +(params.throwEvery || 9),
+      perchY, fly: 0, flyFrom: null, state: 0, hazard: -1, throwT: +(params.throwEvery || 9),
+      holdT: 0, hopT: 0, throwing: 0, rngA: 0, fx: 0, fz: 0, fy: 0, perches: null,
     };
     if (n.behaviour === 'react' && params.react) n.react = params.react;
+    if (perchY > 0.5) n.solid = false;
     if (n.behaviour === 'gerald' || kind === 'gerald') n.behaviour = n.behaviour === 'idle' ? 'gerald' : n.behaviour;
     n.anim = n.baseAnim;
     if (n.path && n.behaviour === 'pathLoop') { n.x = n.px = n.path[0]; n.z = n.pz = n.path[1]; n.pathIdx = 1; }
@@ -93,7 +97,7 @@ export function stepProjectiles(S, dt) {
     P.t[i] += dt;
     const g = 9.8 * S.gravityScale;
     const gy = T.heightAt(P.x[i], P.z[i]);
-    if (P.y[i] <= gy + 0.05 && P.vy[i] <= 0) {
+    if (P.y[i] <= gy + 0.06 && P.vy[i] <= 0.01) {
       // resting / rolling
       P.vx[i] *= Math.exp(-3 * dt); P.vz[i] *= Math.exp(-3 * dt); P.vy[i] = 0; P.y[i] = gy + 0.05;
       if (P.kind[i] === 2 || P.t[i] > 12) { P.kind[i] = 0; continue; }
@@ -107,7 +111,7 @@ const res = { x: 0, z: 0, support: 0, hit: 0, nx: 0, nz: 0, hitIndex: -1 };
 
 function moveToward(S, n, tx, tz, speed, dt) {
   const dx = tx - n.x, dz = tz - n.z;
-  const d = Math.hypot(dx, dz);
+  const d = hypot(dx, dz);
   if (d < 1e-4) { n.speed = 0; return 0; }
   const step = Math.min(d, speed * dt);
   const nx = n.x + (dx / d) * step, nz = n.z + (dz / d) * step;
@@ -143,9 +147,9 @@ export function stepNpcs(S, dt) {
     if (!n.visible) continue;
     n.animT += dt; n.t += dt;
     const dx = n.x - p.x, dz = n.z - p.z;
-    const dist = Math.hypot(dx, dz);
+    const dist = hypot(dx, dz);
     // chill aura: everyone relaxes
-    n.calm = M.calmR > 0 && Math.hypot(n.x - M.calmX, n.z - M.calmZ) < M.calmR ? 1 : Math.max(0, n.calm - dt);
+    n.calm = M.calmR > 0 && hypot(n.x - M.calmX, n.z - M.calmZ) < M.calmR ? 1 : Math.max(0, n.calm - dt);
     if (n.hazard >= 0) { /* hazards.js drives this one */ continue; }
     const B = n.behaviour;
     if (B === 'gerald') { stepGerald(S, n, dist, dt); continue; }
@@ -224,7 +228,7 @@ function stepGerald(S, n, dist, dt) {
   if (n.state === 2) {
     // flying to the next spot
     const fdx = n.tx - n.fx, fdz = n.tz - n.fz;
-    const total = Math.hypot(fdx, fdz) || 1;
+    const total = hypot(fdx, fdz) || 1;
     const spd = Math.max(7, S.derived.top * 1.4);
     n.fly += (spd * dt) / total;
     const u = Math.min(1, n.fly);
@@ -250,7 +254,7 @@ function stepGerald(S, n, dist, dt) {
     n.hopT = (n.hopT || 0) - dt;
     if (n.hopT <= 0) {
       n.hopT = S.rngAI.range(0.6, 1.4);
-      const dx = n.x - p.x, dz = n.z - p.z, d = Math.hypot(dx, dz) || 1;
+      const dx = n.x - p.x, dz = n.z - p.z, d = hypot(dx, dz) || 1;
       n.tx = n.x + (dx / d) * 0.6 + S.rngAI.range(-0.3, 0.3); n.tz = n.z + (dz / d) * 0.6 + S.rngAI.range(-0.3, 0.3);
     }
     moveToward(S, n, n.tx, n.tz, 1.5, dt);
@@ -321,7 +325,7 @@ export function npcPush(S) {
     if (p.y > n.y + n.height) continue;
     const d = Math.sqrt(d2) || 1e-3;
     const push = rr - d;
-    const share = n.hazard >= 0 || n.kind === 'highlandcow' ? 1 : 0.7;
+    const share = n.hazard >= 0 || n.human || n.kind === 'highlandcow' ? 1 : 0.7;
     p.x += (dx / d) * push * share; p.z += (dz / d) * push * share;
     n.x -= (dx / d) * push * (1 - share); n.z -= (dz / d) * push * (1 - share);
   }

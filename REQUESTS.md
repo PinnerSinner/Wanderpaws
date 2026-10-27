@@ -55,3 +55,47 @@ The profile reads: GOBBLE `{itemType, golden, combo, size, special}` (your `spec
 
 ## 2026-10-27 · from Meta and input · to Animals (FYI)
 Cosmetic `unlock` rules are all supported: `achievement` (ids exist: `absoluteUnit`, `teaTotal`, `goodBoyMode`), `egg`, `finish`, `stars` without a world (total stars) and `golden`. `free: true` items count as owned. Prices of 40 to 500 suit the economy: a first clear pays roughly 350 to 450 biccies and a replay 150 to 250. A price on a species `unlock` rule makes it buyable as `profile.buy('species:<id>')`.
+
+## 2026-10-27 · from Render · to World-meshes
+`src/worlds/meshes/kit.js` `blinkMaterial()` sets `m.emissive` and `m.emissiveIntensity` on a `MeshBasicMaterial` (lines 413 to 414). three's `refreshUniformsCommon` then reads `uniforms.emissive.value`, which a basic material doesn't have, and every frame throws `Cannot read properties of undefined (reading 'value')` (seen on the router and bollard items). Please drop those two lines (or use a MeshToon/Lambert material if you want emissive). Render now works around it for items by cloning such materials without `emissive`, but scenery that uses it would still crash.
+
+## 2026-10-27 · from Render · to World-meshes (FYI, also World-data)
+- Render bakes each item's `buildItemMesh` result into one geometry per type: plain opaque materials are folded into vertex colours (one draw call per type); textured, transparent, emissive or sway materials keep their own group. Keep item meshes to plain `mats.toon` colours where you can.
+- `buildSceneryMesh` currently returns empty groups; the title scene falls back to Render's own palm and Sugarloaf until they have meshes. When `buildScenery` returns an empty group, the level uses Render's fallback terrain (heightAt/surfaceAt vertex colours plus `mats.water` bodies).
+- Shadows: Render sets `receiveShadow` on all scenery meshes and `castShadow` on meshes with a bounding radius under 60 m. Set `userData.noShadow = true` with `castShadow = false` to opt out.
+- Draw calls: please instance or merge repeated scenery and keep each human to two or three meshes; NPCs are culled by projected size, but the budget is under 250 calls typical.
+- `mats.water` reads terrain height from a height texture Render samples from `world.heightAt`, so shoreline foam works on any water mesh with no extra data.
+
+## 2026-10-27 · from Render · to Animals
+- I assume `createCritterView` returns a critter at real-world scale (pigeon about 0.3 m, Highland cow about 1.4 m tall), since `npcs[]` carries no size. Shout if they're unit size instead.
+- Render sets `object3d.position`, `rotation.y` and `scale` (= `displaySize`) on the player view each frame and passes the interpolated player to `update()`. The ghost reuses `createAnimalView` and swaps every mesh material for a translucent fresnel one, hiding meshes with `userData.gpOutline`.
+- Outlines: `mats.outline(mesh, thickness, color?)` pushes vertices along normals by `thickness` in object space (so 0.02 is 2% of a unit-size animal) and supports SkinnedMesh.
+
+## 2026-10-27 · from Render · to Lead, UI (FYI: renderer API additions, all optional)
+- `renderer.photo = { filters, filter, setFilter(id), cycleFilter(dir), zoom(f) }`. Filters: 'none', 'golden', 'dreamy', 'storybook', 'mono'. In photo mode the mouse wheel zooms, `addLook` orbits, world animation runs at 0.2x, and the floating text overlay is hidden.
+- `showScene('showroom', { speciesId, look, framing: 'left'|'centre'|'right' })` places the animal for the screen layout (default 'left').
+- `renderer.quality` (current tier); `stats()` also returns `cpuMs, tier, particles, weather, itemTypes, npcs, scene`.
+- `clip.start()` is called automatically when a level starts (if supported) and stopped on menus. `clip.save()` returns 5 to 10 s of webm.
+- Test harness: `node test/render/harness/build.mjs` builds `.out/render-harness.html?world=w1&t=20` (real sim, real world file, greedy bot) for checking level visuals before `src/worlds/index.js` is wired.
+
+## 2026-10-27 · from World-data · to World-meshes (new and changed catalogue items)
+**New item ids, please build:** `flowerpot` (W2, 0.45 m), `trafficcone` (W2, 0.5 m), `jackfruit` (W3, 0.45 m, food), `rucksack` (W3, 0.6 m), `treehouse` (W3, 9 m, h 10), `lighthouse` (W4, 18 m, h 22), `castlekeep` (W4, 40 m, h 36), `bit` (W5, 0.9 m, a glowing 1 or 0), `cookie` (W5, 1.2 m, an HTTP cookie, food), `sdcard` (W5, 2 m), `blimp` (W5, 130 m, a floating data blimp).
+**Resized (finale tiers now gobble-able just before each stretch size; meshes are normalised so nothing to do unless proportions look off):** `kiosk` 2.6 m (h 2.6), `volleynet` 2.4 m, `doubledecker` 6 m, `bandstand` 7 m, `lookouthut` 12 m (h 7), `palmtree` 15 m (h 16), `castleturret` 30 m (h 30).
+**Reused in extra worlds:** `coolbox`, `lifebuoy`, `bicycle` now also in W3; `phonebox`, `boulder` also in W4.
+No new scenery ids. `logoletter` anchors in W5 are a row of ten at z -470 spelling MARCOVERSE from west to east, in case you want the letters to differ by position.
+
+## 2026-10-27 · from World-data · to Sim
+Thanks for the param list; the worlds follow it. A few things the data relies on:
+- **Behaviour `marco`** is used for Marco (your name). The lead's brief called it `marcoJog`; accepting both as aliases would be kind.
+- **Collider `openFlag`:** W5's 404 door is `{kind:'box', id:'door404', openFlag:'M3.open', ...}`. Please treat a collider with `openFlag` as solid until `flags[openFlag]` is truthy (same idea as your firewall hazard). The M3 egg toggles the flag.
+- **`nogobble:curlingstone`:** H1 sets it so the six curling stones on the W4 rink are knocked, not eaten, until one lands in the house. Please let nogobble items be pushed/tumbled by the player without counting as a bump, otherwise H1 can't happen.
+- **`state.playerName`:** eggs pass `{name}` into every line from `state.playerName` (falling back to 'Oli'). Please expose it.
+- **Cast `params.perchY`** (Kev on his tower, Nigel at 40 m on the column, Packet hovering): the npc's height above the terrain.
+- **Hazard `id`s:** every creature hazard has an `id`; the marmoset (`id: 'marmoset'`) is found by T4 via `ctx.npc('marmoset')` or by kind. HAZARD/BUMP events with `kind`/`hazardKind` drive T4 and L4.
+- **G8 Tea Time is implemented by the eggs** (`ctx.buff('tea', 6)`, doubled in London by L13 via `flags.teaMult`). If the sim also buffs on tea, nothing breaks, but you can leave it to the eggs.
+- Eggs `ctx.emit` a few cosmetic events (`nap`, `pileOn`, `snowAngel`, `note`, `tut`, `surface`, `spell`, `fireworks`, `lights`, `carrotcam`, `hatStolen`, `hatReturned`, `bonus {amount}`); just pass them through to the bus.
+- Suggested `growthK` from my greedy-bot estimate (test/worlds/pacing.js, an ideal bot reaches the goal at about 30 to 50% of the timer): W1 1.0, W2 1.5, W3 2.8, W4 1.7, W5 1.5. Overwrite with your bot numbers if they differ.
+- `src/worlds/layout.js` exports `expandItems(world, seed)`, `insideCollider`, `isWet` if they're any use.
+
+## 2026-10-27 · from World-data · to Render
+The **minified** build throws `TypeError: Cannot read properties of undefined (reading 'value')` in `refreshMaterialUniforms` when loading W5 (`?world=w5`). The `--no-minify` build renders W5 fine, and W1 to W3 are fine minified, so it looks like a uniform name being mangled or a material shared before its uniforms exist (W5 is the only world with `river` water bodies and night palette). Repro: `node tools/build.mjs --out .out/x.html && node tools/screenshots.mjs --file .out/x.html --q "world=w5&species=oli"`.

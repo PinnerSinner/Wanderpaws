@@ -85,7 +85,7 @@ export function bakeObject(THREE, root, mats) {
     let mat;
     if (b.plain) mat = mats.itemFx(mats.toon('#ffffff', { vertexColors: true }));
     else if (b.material.name === 'gp-toon' || b.material.name === 'gp-sway') mat = mats.itemFx(b.material);
-    else mat = b.material;
+    else mat = safeMaterial(b.material);
     materials.push(mat);
   }
 
@@ -101,4 +101,20 @@ export function bakeObject(THREE, root, mats) {
 
 export function disposeObject(root) {
   root.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+}
+
+// three's uniform refresh crashes if a MeshBasicMaterial carries an 'emissive'
+// property (it has no emissive uniform), so use a clean clone for those.
+const _safe = new WeakMap();
+export function safeMaterial(m) {
+  if (!m || !m.isMeshBasicMaterial || !('emissive' in m)) return m;
+  let c = _safe.get(m);
+  if (!c) {
+    c = m.clone();
+    delete c.emissive; delete c.emissiveIntensity;
+    c.onBeforeCompile = m.onBeforeCompile;
+    if (m.customProgramCacheKey !== c.customProgramCacheKey) c.customProgramCacheKey = m.customProgramCacheKey;
+    _safe.set(m, c);
+  }
+  return c;
 }

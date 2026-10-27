@@ -3,6 +3,7 @@
 import { EV } from '../core/events.js';
 import { TUNE } from './tune.js';
 import { IS_IDLE, IS_WOBBLE, IS_TUMBLE, IS_GOBBLING, IS_GONE } from './items.js';
+import { hypot } from './util.js';
 
 // ---- pure maths (exported for tests) ----
 export function gobbleThreshold(size, assist) { return size * (assist ? TUNE.gobbleRatioAssist : TUNE.gobbleRatio); }
@@ -132,7 +133,7 @@ export function nearestGobbleable(S, x, z, range, yaw, halfAngle, max, extraV = 
     const i = hits[j];
     if (!canGobble(S, i)) continue;
     const dx = I.x[i] - x, dz = I.z[i] - z;
-    const d = Math.hypot(dx, dz);
+    const d = hypot(dx, dz);
     if (d > range + I.size[i] * 0.5) continue;
     if (halfAngle < Math.PI && d > 1e-4 && (dx * fx + dz * fz) / d < cosH) continue;
     if (!verticalOk(S, i, extraV)) continue;
@@ -273,7 +274,7 @@ export function bump(S, by, hazardKind, fromX, fromZ, strength = 1) {
   if (!S.assist && !tr.noDrops && S.mode !== 'chill') n = dropCount(S.rngFx.int(1, 3), tr.dropMult == null ? 1 : tr.dropMult);
   const dropped = dropItems(S, n);
   let dx = p.x - fromX, dz = p.z - fromZ;
-  const d = Math.hypot(dx, dz);
+  const d = hypot(dx, dz);
   if (d < 1e-4) { dx = -Math.sin(p.yaw); dz = -Math.cos(p.yaw); } else { dx /= d; dz /= d; }
   const kb = S.derived.top * 0.9 * strength;
   p.vx = dx * kb; p.vz = dz * kb;
@@ -298,7 +299,7 @@ export function playerItemContacts(S, dt) {
   const hits = S.items.G.hits;
   for (let j = 0; j < n && m < buf.length; j++) buf[m++] = hits[j];
   const top = D.top;
-  const speed = Math.hypot(p.vx, p.vz);
+  const speed = hypot(p.vx, p.vz);
   const heavy = S.species.signature && S.species.signature.kind === 'trunkHoover';
   const rolling = S.sigMods.rolling;
   for (let j = 0; j < m; j++) {

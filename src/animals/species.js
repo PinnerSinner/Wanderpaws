@@ -25,7 +25,6 @@ function make(id, o) {
   const p = o.personality || {};
   return {
     swims: false, floats: false, canJump: true,
-    presets: [],
     ...o,
     id,
     nameKey: `species.${id}.name`,
@@ -182,7 +181,7 @@ export const SPECIES = {
       idleBias: { sniff: 1.5, sit: 0.5, scratch: 0.3, yawn: 1.5, look: 2, playbow: 0, shake: 0.2, lie: 2, species: 2 },
     },
     hitbox: { radius: 0.5, height: 0.5 },
-    defaults: { base: '#7c8a4a', secondary: '#5f6d35', belly: '#d9c88f', tips: '#a9b36a', eyes: '#1d1a12', nose: '#5c5436', pattern: 'patches', patternColor: '#c2a35a' },
+    defaults: { base: '#7c8a4a', secondary: '#4a5628', belly: '#d9c88f', tips: '#a9b36a', eyes: '#1d1a12', nose: '#5c5436', pattern: 'patches', patternColor: '#9aa255', patternAmount: 0.3 },
     presets: [
       { id: 'garden', look: { base: '#7c8a4a', secondary: '#5f6d35', belly: '#d9c88f', tips: '#a9b36a', pattern: 'patches', patternColor: '#c2a35a' } },
       { id: 'desert', look: { base: '#b08a55', secondary: '#7a5a34', belly: '#e0c890', tips: '#c9a86a', pattern: 'patches', patternColor: '#e0b860' } },

@@ -126,7 +126,7 @@ function makeKit(THREE) {
   class Layer {
     constructor(name) {
       this.name = name;
-      this.pos = []; this.nor = []; this.col = []; this.uv = []; this.blink = []; this.idx = [];
+      this.pos = []; this.nor = []; this.col = []; this.uv = []; this.blink = []; this.idx = []; this.skin = []; this.skinned = false;
       this.extra = null; // { name, size, data[] } for custom attributes
       this.map = null; this.opts = null;
     }
@@ -149,6 +149,7 @@ function makeKit(THREE) {
         o = { ...o, m: o.m.clone().premultiply(this.defaults.m) };
       } else if (this.defaults.m) o = { ...o, m: this.defaults.m };
       if (this.defaults.layer && !o.layer) o = { ...o, layer: this.defaults.layer };
+      const bone = o.bone ?? this.defaults.bone;
       const L = this.layer(o.layer || 'main');
       if (o.map) L.map = o.map;
       if (o.layerOpts) L.opts = o.layerOpts;
@@ -186,7 +187,9 @@ function makeKit(THREE) {
         }
         if (U) L.uv.push(U.getX(i), U.getY(i)); else L.uv.push(0, 0);
         L.blink.push(bl[0], bl[1]);
+        L.skin.push(bone || 0);
       }
+      if (bone !== undefined) L.skinned = true;
       if (o.fc) {
         // flat colour per triangle, sampled at the centroid (crisp stripes and patches)
         for (let i = 0; i < P.count; i += 3) {
@@ -339,6 +342,12 @@ function makeKit(THREE) {
         g.setAttribute('color', new THREE.Float32BufferAttribute(L.col, 3));
         if (name.startsWith('tex:') || name === 'water' || L.wantUv) g.setAttribute('uv', new THREE.Float32BufferAttribute(L.uv, 2));
         if (name === 'glow') g.setAttribute('blink', new THREE.Float32BufferAttribute(L.blink, 2));
+        if (L.skinned) {
+          const si = new Uint16Array(L.count * 4), sw = new Float32Array(L.count * 4);
+          for (let i = 0; i < L.count; i++) { si[i * 4] = L.skin[i]; sw[i * 4] = 1; }
+          g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+          g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+        }
         g.setIndex(L.count > 65535 ? new THREE.Uint32BufferAttribute(L.idx, 1) : new THREE.Uint16BufferAttribute(L.idx, 1));
         g.computeBoundingBox(); g.computeBoundingSphere();
         out[name] = { geometry: g, map: L.map, opts: L.opts };
@@ -400,6 +409,9 @@ export function blinkMaterial(THREE, mats, o = {}) {
   };
   m.customProgramCacheKey = () => 'wm-blink-' + key;
   m.userData.wmBlink = true;
+  // marker so render's item baker keeps this in its own (glowing) bucket rather
+  // than folding it into plain vertex colours (the define is unused by MeshBasic)
+  m.defines = { ...(m.defines || {}), GP_SWAY: '', WM_BLINK: '' };
   per.set(key, m);
   return m;
 }

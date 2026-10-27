@@ -13,7 +13,7 @@ export function buildFallbackScenery(THREE, mats, world) {
   const b = world.bounds || { minX: -60, maxX: 60, minZ: -40, maxZ: 40 };
   const pad = 40;
   const w = b.maxX - b.minX + pad * 2, d = b.maxZ - b.minZ + pad * 2;
-  const segX = Math.min(220, Math.max(40, Math.round(w / 1.2))), segZ = Math.min(220, Math.max(40, Math.round(d / 1.2)));
+  const segX = Math.min(160, Math.max(40, Math.round(w / 1.8))), segZ = Math.min(160, Math.max(40, Math.round(d / 1.8)));
   const g = new THREE.PlaneGeometry(w, d, segX, segZ).rotateX(-Math.PI / 2);
   g.translate((b.minX + b.maxX) / 2, 0, (b.minZ + b.maxZ) / 2);
   const pos = g.getAttribute('position');

@@ -3,6 +3,8 @@
 // their step-up height and can stand on anything lower. Pass flags let some
 // species through: 'squeeze' (cat-flaps, fence gaps) and 'under' (fences).
 
+import { hypot } from './util.js';
+
 export const PASS_SQUEEZE = 1;
 export const PASS_UNDER = 2;
 const PASS_CODES = { squeeze: PASS_SQUEEZE, under: PASS_UNDER };
@@ -33,7 +35,7 @@ export function createColliders(world, terrain, extra = []) {
     else {
       hw[i] = Math.max(0.005, (+c.w || 1) / 2); hd[i] = Math.max(0.005, (+c.d || 1) / 2);
       const rot = +c.rot || 0; cs[i] = Math.cos(rot); sn[i] = Math.sin(rot);
-      bound[i] = Math.hypot(hw[i], hd[i]);
+      bound[i] = hypot(hw[i], hd[i]);
     }
     const b0 = c.y != null ? +c.y : terrain.heightAt(cx[i], cz[i]);
     base[i] = c.y != null ? b0 : b0 - 50; // grounded colliders extend down so slopes never open a gap
@@ -98,7 +100,7 @@ export function createColliders(world, terrain, extra = []) {
   function closest(i, x, z) {
     const ox = x - cx[i], oz = z - cz[i];
     if (kind[i] === 1) {
-      const d = Math.hypot(ox, oz);
+      const d = hypot(ox, oz);
       const r = rad[i];
       if (d >= r) { const s = (d - r) / (d || 1); cp.dx = ox * s; cp.dz = oz * s; cp.dist = d - r; cp.inside = false; }
       else {
@@ -115,7 +117,7 @@ export function createColliders(world, terrain, extra = []) {
     const qz = lz < -d ? -d : lz > d ? d : lz;
     let ex = lx - qx, ez = lz - qz;
     if (ex !== 0 || ez !== 0) {
-      cp.dist = Math.hypot(ex, ez); cp.inside = false;
+      cp.dist = hypot(ex, ez); cp.inside = false;
     } else {
       // inside: push along the axis of least penetration
       const px = w - Math.abs(lx), pz = d - Math.abs(lz);

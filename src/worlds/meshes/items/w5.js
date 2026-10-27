@@ -50,9 +50,12 @@ export const w5 = {
 
   sdcard(b) {
     const sh = [[-0.7, -1.0], [0.7, -1.0], [0.7, 0.75], [0.45, 1.0], [-0.7, 1.0]];
-    b.extrude(sh, 0.12, C.navy, { y: 0.06, rx: -PI / 2, bevel: 0.03, cf: (x, y, z, wx, wy, wz) => (wy > 0.09 && wz > -0.4 && wz < 0.6 && Math.abs(wx) < 0.55 ? (wz < -0.2 ? rgb(C.amber) : rgb(C.cream)) : rgb(C.navy)) });
+    b.extrude(sh, 0.12, C.navy, { y: 0.06, rx: -PI / 2, bevel: 0.03 });
+    b.box(1.15, 0.03, 1.1, C.cream, { y: 0.14, z: 0.25, r: 0.04 });
+    b.box(1.15, 0.035, 0.3, C.amber, { y: 0.145, z: -0.15, r: 0.03 });
+    b.box(0.5, 0.04, 0.12, C.lilac, { x: -0.25, y: 0.15, z: 0.45 });
     for (let i = 0; i < 8; i++) b.box(0.11, 0.02, 0.28, '#f2c94c', { x: -0.52 + i * 0.15, y: 0.13, z: -0.82 });
-    b.box(0.08, 0.04, 0.3, '#e8e8f0', { x: -0.74, y: 0.06, z: 0.3 }); // lock switch
+    b.box(0.08, 0.04, 0.3, '#e8e8f0', { x: -0.74, y: 0.06, z: 0.3 });
   },
 
   rj45(b) {
@@ -194,13 +197,16 @@ export const w5 = {
   },
 
   firewallbrick(b) {
-    const brick = (x, y, z, wx, wy, wz) => {
-      const row = Math.floor(wy / 1.6), off = (row % 2) * 1.6;
-      const bx = (wx + 20 + off) % 3.2, by = wy % 1.6;
-      if (bx < 0.18 || by < 0.18) return rgb('#e8d8c0');
-      return mixRgb('#e0704a', '#c0503a', (((row * 7 + Math.floor((wx + 20 + off) / 3.2) * 3) % 4) / 4));
-    };
-    b.box(20.0, 9.6, 6.0, '#d8603e', { y: 4.8, fc: true, cf: brick, ws: 1 });
+    b.box(19.6, 9.6, 5.6, '#e8d8c0', { y: 4.8 });
+    for (let row = 0; row < 6; row++) {
+      const off = (row % 2) * 1.6;
+      for (let k = -1; k < 7; k++) {
+        const x0 = -9.8 + k * 3.2 + off, x1 = Math.min(9.8, x0 + 3.0), xa = Math.max(-9.8, x0);
+        if (x1 - xa < 0.4) continue;
+        const col = ['#e0704a', '#d0603e', '#c8583a', '#e88058'][(row * 7 + k * 3 + 8) % 4];
+        for (const sz of [-1, 1]) b.box(x1 - xa, 1.42, 0.3, col, { x: (xa + x1) / 2, y: 0.8 + row * 1.6, z: sz * 2.85 });
+      }
+    }
     b.box(20.4, 0.6, 6.4, '#c8b8a0', { y: 9.9, r: 0.2 });
     // cosy cartoon flames
     for (let i = 0; i < 7; i++) {
@@ -252,15 +258,15 @@ export const w5 = {
   },
 
   satellitedish(b) {
-    const tilt = 0.75;
+    const tilt = 0.5;
     b.lathe([[0, 0], [8, 1.0], [16, 3.8], [22, 7.5], [22.6, 7.8], [22.4, 8.2], [16, 4.6], [8, 1.8], [0, 0.8]], '#f4f1fb', {
-      y: 22, z: 2, rx: -tilt, seg: 24, cf: (x, y, z, wx, wy, wz, nx, ny, nz) => (Math.hypot(x, z) > 21.5 ? rgb(C.lilac) : mixRgb('#ffffff', '#d4ccf0', smooth(0, 22, Math.hypot(x, z)))),
+      y: 22, z: 2, rx: tilt, seg: 24, cf: (x, y, z, wx, wy, wz, nx, ny, nz) => (Math.hypot(x, z) > 21.5 ? rgb(C.lilac) : mixRgb('#ffffff', '#d4ccf0', smooth(0, 22, Math.hypot(x, z)))),
     });
     for (let k = 0; k < 3; k++) { const a = (k / 3) * TAU; b.rod([Math.cos(a) * 18, 22 + Math.sin(a) * 9 + 7, 2 + Math.sin(a) * 12 + 2], [0, 22 + Math.cos(tilt) * 14, 2 + Math.sin(tilt) * 14], 0.35, '#c8cce0', { seg: 5 }); }
     b.ball(1.6, C.amber, { y: 22 + Math.cos(tilt) * 14, z: 2 + Math.sin(tilt) * 14, seg: 10, layer: 'glow' });
     b.cyl(2.2, 3.0, 20, '#5a5488', { y: 11, seg: 10 });
     b.box(12, 2.0, 12, '#3a3456', { y: 1.0, r: 0.5 });
-    b.box(4, 4, 0.6, '#c8cce0', { y: 21, z: 0, rx: -tilt, r: 0.3 });
+    b.box(4, 4, 0.6, '#c8cce0', { y: 21, z: 0, rx: tilt + PI / 2, r: 0.3 });
   },
 
   loaderball(b) {

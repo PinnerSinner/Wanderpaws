@@ -5,6 +5,7 @@
 // of the frame (the menu lives on the right) while the camera drifts.
 
 import { noise2, fbm2 } from '../../core/math.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const TITLE_PALETTE = {
   skyTop: '#5b8fd8', skyBottom: '#ffd2a8', horizon: '#ffc59a', fog: '#f9c8aa', fogNear: 70, fogFar: 950,
@@ -22,6 +23,7 @@ export function titleHeight(x, z) {
   if (x > 9) h -= (x - 9) * 0.12;
   return h;
 }
+const hasMesh = (o) => { let n = 0; o.traverse((c) => { if (c.isMesh) n++; }); return n > 0; };
 const smooth01 = (t) => { const v = t < 0 ? 0 : t > 1 ? 1 : t; return v * v * (3 - 2 * v); };
 
 function waveTexture(THREE) {
@@ -49,45 +51,46 @@ function waveTexture(THREE) {
 }
 
 function fallbackPalm(THREE, mats) {
-  const g = new THREE.Group();
-  const trunkMat = mats.sway('#a7794f', { strength: 0.7 });
+  // two merged meshes (trunk, fronds) so each palm is two draw calls
+  const trunk = [], fronds = [];
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
   let y = 0, x = 0;
   for (let i = 0; i < 8; i++) {
-    const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.16 - i * 0.008, 0.2 - i * 0.008, 1.05, 7), trunkMat);
+    const g = new THREE.CylinderGeometry(0.15 - i * 0.008, 0.19 - i * 0.008, 1.06, 7);
     x += i * 0.035;
-    seg.position.set(x, y + 0.5, 0);
-    seg.rotation.z = -0.05 - i * 0.012;
-    g.add(seg);
+    e.set(0, 0, -0.05 - i * 0.012); q.setFromEuler(e); p.set(x, y + 0.5, 0);
+    g.applyMatrix4(m4.compose(p, q, sc));
+    trunk.push(g);
     y += 1.0;
   }
-  const frondMat = mats.sway('#5fb36a', { strength: 1.4 });
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    const pivot = new THREE.Group();
-    pivot.position.set(x, y, 0);
-    pivot.rotation.y = a;
-    const f = new THREE.Mesh(new THREE.ConeGeometry(0.38, 3.0, 4, 1), frondMat);
-    f.scale.set(1, 1, 0.22);
-    f.rotation.z = -1.95 - (i % 2) * 0.25;
-    f.position.set(1.35, -0.25, 0);
-    pivot.add(f);
-    g.add(pivot);
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    const g = new THREE.ConeGeometry(0.4, 3.0, 4, 1);
+    g.scale(1, 1, 0.22);
+    g.rotateZ(-1.95 - (i % 2) * 0.25);
+    g.translate(1.35, -0.25, 0);
+    g.rotateY(a);
+    g.translate(x, y, 0);
+    fronds.push(g);
   }
-  const nut = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), mats.toon('#6b4a2a'));
-  nut.position.set(x + 0.1, y - 0.2, 0.1);
-  g.add(nut);
-  return g;
+  const nut = new THREE.SphereGeometry(0.17, 8, 6); nut.translate(x + 0.12, y - 0.25, 0.1); trunk.push(nut);
+  const grp = new THREE.Group();
+  grp.add(new THREE.Mesh(mergeGeometries(trunk), mats.sway('#9c7350', { strength: 0.6 })));
+  grp.add(new THREE.Mesh(mergeGeometries(fronds), mats.sway('#5cae6a', { strength: 1.3 })));
+  for (const g of [...trunk, ...fronds]) g.dispose();
+  return grp;
 }
 
 function fallbackLoaf(THREE, mats) {
+  // a hazy distant silhouette: the tall sugarloaf dome with a lower neighbour
   const g = new THREE.Group();
-  const m = mats.toon('#6f8f7a');
+  const m = mats.toon('#a7889a', { rim: false });
   const a = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), m);
-  a.scale.set(60, 160, 70);
+  a.scale.set(26, 70, 30);
   g.add(a);
   const b = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), m);
-  b.scale.set(90, 70, 80);
-  b.position.set(-110, 0, 30);
+  b.scale.set(48, 30, 40);
+  b.position.set(-60, 0, 20);
   g.add(b);
   return g;
 }
@@ -145,7 +148,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
 
   // scenery: palms, the Sugarloaf, a parasol, towel and beach ball
   const tryScenery = (id, fb) => {
-    try { const o = buildSceneryMesh ? buildSceneryMesh(THREE, mats, id, {}) : null; if (o) return o; } catch (e) { console.warn('[render] title scenery', id, e); }
+    try { const o = buildSceneryMesh ? buildSceneryMesh(THREE, mats, id, {}) : null; if (o && hasMesh(o)) return o; } catch (e) { console.warn('[render] title scenery', id, e); }
     return fb ? fb() : null;
   };
   const tryItem = (id) => {
@@ -155,7 +158,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
     } catch (e) { console.warn('[render] title item', id, e); }
     return null;
   };
-  const palms = [[5.4, 8, 0.3], [-1, 12, 2.1], [3.6, 19, 4.0], [-4, 25, 1.2], [1.8, 33, 5.1], [-7, 40, 3.3], [-3.5, 4.5, 0.9]];
+  const palms = [[1.5, 16, 0.3], [-3, 21, 2.1], [4.2, 27, 4.0], [-5, 33, 1.2], [1.5, 40, 5.1], [-8, 46, 3.3]];
   for (const [x, z, r] of palms) {
     const p = tryScenery('palm', () => fallbackPalm(THREE, mats));
     p.position.set(x, titleHeight(x, z) - 0.05, z);
@@ -164,11 +167,11 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
     group.add(p);
   }
   const loaf = tryScenery('sugarloaf', () => fallbackLoaf(THREE, mats));
-  loaf.position.set(330, -8, 280);
+  loaf.position.set(250, -8, 420);
   loaf.rotation.y = -0.6;
   group.add(loaf);
   const loaf2 = tryScenery('sugarloaf', () => fallbackLoaf(THREE, mats));
-  loaf2.position.set(420, -12, 140);
+  loaf2.position.set(470, -12, 520);
   loaf2.scale.multiplyScalar(0.7);
   group.add(loaf2);
   const parasol = tryItem('parasol');

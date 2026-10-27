@@ -74,6 +74,7 @@ varying vec3 vGpWorld;
 #endif
 #ifdef GP_BIRD
 attribute float aWing;
+attribute float aFlap;
 #endif
 `)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -104,9 +105,12 @@ attribute float aWing;
   {
     float gpPhase = float( gl_InstanceID ) * 1.618;
     float gpFlap = sin( gpTime * ( 9.0 + mod( gpPhase, 3.0 ) ) + gpPhase * 6.0 );
-    float gpA = gpFlap * 0.9 * abs( aWing );
+    float gpA = ( gpFlap * 0.9 * aFlap + ( 1.0 - aFlap ) * 0.15 ) * abs( aWing );
     float gpC = cos( gpA ), gpSn = sin( gpA );
     vec2 xy = transformed.xy;
+    float fold = mix( 0.08, 1.0, aFlap );
+    float wx = sign( xy.x ) * ( 0.1 + ( abs( xy.x ) - 0.1 ) * fold );
+    if ( abs( aWing ) > 0.0 || abs( xy.x ) > 0.1 ) xy.x = abs( aWing ) > 0.0 ? wx : xy.x;
     transformed.x = xy.x * gpC;
     transformed.y = xy.y + abs( xy.x ) * gpSn;
   }

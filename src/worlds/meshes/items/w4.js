@@ -227,7 +227,7 @@ export const w4 = {
       cf: (x, y, z, wx, wy, wz, nx, ny) => {
         if (nz(nx, ny) && Math.abs(Math.hypot(wx - 0.05, wy - 2.6) - 0.35) < 0.05 && wz > 0) return rgb('#6a6f78');
         if (ny > 0.6) return rgb(C.snow);
-        return noise2(wx * 3, wy * 3) > 0.62 ? rgb('#a8b47a') : mixRgb('#a8aeb4', '#7a8088', smooth(-0.5, 0.5, noise2(wx * 4, wy * 3 + wz)));
+        return noise2(wx * 5, wy * 5) > 0.7 ? rgb('#b4bc8a') : mixRgb('#a8aeb4', '#7a8088', smooth(-0.5, 0.5, noise2(wx * 4, wy * 3 + wz)));
       },
     });
     for (let i = 0; i < 5; i++) { const a = i * 1.3; b.ball(0.32, C.heather, { x: Math.cos(a) * 1.1, y: 0.15, z: Math.sin(a) * 0.8, sy: 0.6, seg: 8, df: lumpy(0.2, 4) }); }
@@ -259,7 +259,7 @@ export const w4 = {
     for (const [r, h, y] of tiers) {
       b.cone(r, h, C.pine, {
         y: y + h / 2, seg: 10, hs: 2, df: (v) => { const th = Math.atan2(v.z, v.x); const k = 1 + 0.1 * Math.cos(th * 5); if (v.y < -h / 2 + 0.01) { v.x *= k; v.z *= k; v.y += 0.25 * Math.cos(th * 5); } },
-        cf: (x, y2, z, wx, wy, wz, nx, ny) => (y2 > h * 0.18 + 0.15 * Math.sin(Math.atan2(z, x) * 5) ? rgb(C.snow) : y2 < -h * 0.42 ? rgb('#e8eef8') : mixRgb('#3a7a52', '#1f4a36', smooth(h * 0.1, -h / 2, y2))),
+        cf: (x, y2, z, wx, wy, wz, nx, ny) => (y2 > h * 0.3 + 0.15 * Math.sin(Math.atan2(z, x) * 5) ? rgb(C.snow) : y2 < -h * 0.47 ? rgb('#e8eef8') : mixRgb('#3a7a52', '#1f4a36', smooth(h * 0.1, -h / 2, y2))),
       });
     }
     b.cone(0.5, 1.4, C.snow, { y: 11.3, seg: 8 });

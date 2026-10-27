@@ -33,7 +33,7 @@ export function speciesScreen(ctx, params) {
         h('div', { class: 'gp-row', style: { justifyContent: 'space-between', gap: 'calc(1 * var(--u))' } },
           h('b', { class: 'gp-h3' }, open ? speciesName(id) : t('ui.unknown')),
           open ? h('span', { class: 'gp-chip ' + (best ? 'gp-chip--sea' : 'gp-chip--ghost') }, icon('ruler'), best ? formatSizeUI(best) : t('ui.species.none')) : h('span', { class: 'gp-chip gp-chip--ghost' }, icon('lock'))),
-        open ? h('span', { class: 'gp-small' }, h('b', { style: { color: 'var(--coral-d)' } }, tk(sp.signature?.nameKey, '')), ' · ', tk(sp.signature?.descKey, '')) : h('span', { class: 'gp-small' }, unlockText(app, sp)),
+        open ? h('span', { class: 'gp-small' }, h('b', { style: { color: 'var(--coral-d)' } }, tk(sp.signature?.nameKey, prettyId(sp.signature?.kind || ''))), tk(sp.signature?.descKey, '') ? ' · ' + tk(sp.signature?.descKey, '') : '') : h('span', { class: 'gp-small' }, unlockText(app, sp)),
         open ? statBarsEl(sp, ['speed', 'turn', 'jump', 'reach']) : null)));
   });
   const scr = frame(ctx, params, t('ui.species.title'), grid, 'species');

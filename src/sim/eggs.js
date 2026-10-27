@@ -3,6 +3,7 @@
 // that throws is switched off and noted in sim.debug, never takes the run down.
 import { EV } from '../core/events.js';
 import { IS_HIDDEN } from './items.js';
+import { hypot } from './util.js';
 
 export function createEggs(S) {
   const eggs = (S.world.eggs || []).filter((e) => e && e.id);
@@ -53,7 +54,7 @@ function makeCtx(S, egg, rng, foundSet) {
     },
     zone(id) { return st.zones[id] || S.emptyZone; },
     stillTime() { return S.run.stillT; },
-    dist(x, z) { return Math.hypot(st.player.x - x, st.player.z - z); },
+    dist(x, z) { return hypot(st.player.x - x, st.player.z - z); },
     spawnItem(type, x, z, opts) {
       const o = opts || {};
       return S.items.spawn(type, x, z, { golden: !!o.golden, drop: o.drop !== false, size: o.size });

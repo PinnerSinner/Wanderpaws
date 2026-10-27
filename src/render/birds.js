@@ -2,37 +2,58 @@
 // a little procedural bird whose wings flap in the vertex shader.
 
 const KINDS = [
-  { color: '#9aa3b5', scale: 0.34 },  // 0 pigeon
-  { color: '#f4f2ee', scale: 0.55 },  // 1 gull
-  { color: '#2b2a33', scale: 0.5 },   // 2 toucan-ish dark
-  { color: '#ffb36b', scale: 0.12 },  // 3 butterfly / small
+  { color: '#9aa0b8', scale: 0.45 },  // 0 pigeon (geometry is about 0.4 m long at scale 1)
+  { color: '#f4f2ee', scale: 0.72 },  // 1 gull
+  { color: '#2b2a33', scale: 0.6 },   // 2 toucan-ish dark
+  { color: '#ffb36b', scale: 0.14 },  // 3 butterfly / small
 ];
 
 function birdGeometry(THREE) {
-  // body: a stretched diamond; wings: two flat triangles marked with aWing = +-1
-  const P = [], W = [], I = [];
-  const v = (x, y, z, w) => { P.push(x, y, z); W.push(w); return P.length / 3 - 1; };
-  const nose = v(0, 0.02, 0.5, 0), tail = v(0, 0.03, -0.45, 0), top = v(0, 0.12, 0.05, 0), bot = v(0, -0.08, 0.05, 0);
-  const l = v(-0.12, 0.02, 0.05, 0), r = v(0.12, 0.02, 0.05, 0);
-  I.push(nose, top, l, nose, r, top, nose, l, bot, nose, bot, r, tail, l, top, tail, top, r, tail, bot, l, tail, r, bot);
-  // tail fan
-  const t1 = v(-0.12, 0.03, -0.62, 0), t2 = v(0.12, 0.03, -0.62, 0);
-  I.push(tail, t2, t1, tail, t1, t2);
-  // wings
-  const wl0 = v(-0.08, 0.04, 0.16, 0), wl1 = v(-0.08, 0.04, -0.12, 0), wlt = v(-0.62, 0.05, -0.08, -1), wlm = v(-0.36, 0.05, 0.12, -0.6);
-  I.push(wl0, wlm, wl1, wl1, wlm, wlt, wl0, wl1, wlm, wl1, wlt, wlm);
-  const wr0 = v(0.08, 0.04, 0.16, 0), wr1 = v(0.08, 0.04, -0.12, 0), wrt = v(0.62, 0.05, -0.08, 1), wrm = v(0.36, 0.05, 0.12, 0.6);
-  I.push(wr0, wr1, wrm, wr1, wrt, wrm, wr0, wrm, wr1, wr1, wrm, wrt);
+  // a chubby body (squashed sphere), a little head and beak, and two wings whose
+  // vertices carry aWing (signed span weight) for the flap in the vertex shader
+  const body = new THREE.SphereGeometry(0.2, 10, 7);
+  body.scale(0.8, 0.75, 1.35);
+  const head = new THREE.SphereGeometry(0.11, 8, 6); head.translate(0, 0.13, 0.27);
+  const beak = new THREE.ConeGeometry(0.035, 0.1, 5); beak.rotateX(Math.PI / 2); beak.translate(0, 0.12, 0.4);
+  const tail = new THREE.ConeGeometry(0.09, 0.2, 4); tail.scale(1.4, 0.3, 1); tail.rotateX(-Math.PI / 2); tail.translate(0, 0.02, -0.33);
+  const parts = [body, head, beak, tail];
+  const P = [], N = [], W = [], I = [];
+  let base = 0;
+  for (const g of parts) {
+    const ng = g.toNonIndexed(); ng.computeVertexNormals();
+    const pa = ng.getAttribute('position'), na = ng.getAttribute('normal');
+    for (let k = 0; k < pa.count; k++) { P.push(pa.getX(k), pa.getY(k), pa.getZ(k)); N.push(na.getX(k), na.getY(k), na.getZ(k)); W.push(0); I.push(base + k); }
+    base += pa.count;
+    g.dispose(); ng.dispose();
+  }
+  // wings: a rounded quad strip each side, both faces
+  const wing = (sgn) => {
+    const pts = [[0.1, 0.12], [0.1, -0.1], [0.33, 0.1], [0.36, -0.1], [0.55, 0.02], [0.52, -0.1]];
+    const idx = [[0, 1, 2], [1, 3, 2], [2, 3, 4], [3, 5, 4]];
+    for (const [a, b, c] of idx) {
+      for (const tri of [[a, b, c], [a, c, b]]) {
+        for (const v of tri) {
+          const [x, z] = pts[v];
+          P.push(sgn * x, 0.06, z); N.push(0, tri[1] === b ? 1 : -1, 0); W.push(sgn * Math.min(1, (x - 0.1) / 0.45)); I.push(base++);
+        }
+      }
+    }
+  };
+  wing(1); wing(-1);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
   g.setAttribute('aWing', new THREE.Float32BufferAttribute(W, 1));
   g.setIndex(I);
-  g.computeVertexNormals();
   return g;
 }
 
 export function createBirds(THREE, { mats, max = 64 }) {
   const geo = birdGeometry(THREE);
+  const flapArr = new Float32Array(max).fill(1);
+  const flap = new THREE.InstancedBufferAttribute(flapArr, 1);
+  flap.setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('aFlap', flap);
   const mesh = new THREE.InstancedMesh(geo, mats.bird(), max);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   mesh.count = 0;
@@ -55,7 +76,11 @@ export function createBirds(THREE, { mats, max = 64 }) {
       const vx = b.vx ? b.vx[i] : 0, vy = b.vy ? b.vy[i] : 0, vz = b.vz ? b.vz[i] : 0;
       p.set(b.x[i] - vx * back, b.y[i] - vy * back, b.z[i] - vz * back);
       const h = Math.hypot(vx, vz);
-      e.set(-Math.atan2(vy, h + 1e-4) * 0.8, Math.atan2(vx, vz), 0);
+      const sp = Math.hypot(h, vy);
+      // walking or perched birds fold their wings
+      const target = sp > 1.2 ? 1 : 0;
+      flapArr[i] += (target - flapArr[i]) * 0.15;
+      e.set(-Math.atan2(vy, h + 1e-4) * 0.8 * flapArr[i], h > 0.05 ? Math.atan2(vx, vz) : e.y, 0);
       q.setFromEuler(e);
       const k = b.kind ? b.kind[i] % KINDS.length : 0;
       const sc = KINDS[k].scale * scaleMul;
@@ -66,7 +91,7 @@ export function createBirds(THREE, { mats, max = 64 }) {
     }
     mesh.count = n;
     mesh.visible = n > 0;
-    if (n) mesh.instanceMatrix.needsUpdate = true;
+    if (n) { mesh.instanceMatrix.needsUpdate = true; flap.needsUpdate = true; }
     if (colorDirty && mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }
 

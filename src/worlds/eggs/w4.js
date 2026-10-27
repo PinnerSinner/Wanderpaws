@@ -1,6 +1,6 @@
 // W4 Snowy Highlands easter eggs: H1 to H13 (SPEC §7), plus HX extras, G8 and G9.
 
-import { EV, egg, withLines, zoneEgg, gobbleEgg, npcEgg, findNpc, npcDist, findItems, countEvents, distXZ, teaTimeEgg, geraldDisguiseEgg } from './common.js';
+import { EV, say, egg, withLines, zoneEgg, gobbleEgg, npcEgg, findNpc, npcDist, findItems, countEvents, distXZ, teaTimeEgg, geraldDisguiseEgg } from './common.js';
 
 export function makeEggsW4(P) {
   // H1: knock a curling stone into the house. Stones on the rink can't be gobbled
@@ -18,7 +18,7 @@ export function makeEggsW4(P) {
         ctx.found();
         ctx.flag('nogobble:curlingstone', false);
         for (const id of ['curler1', 'curler2', 'curler3']) ctx.setNpcAnim(id, 'cheer');
-        ctx.say('curler1', 'egg.H1.line');
+        say(ctx, 'curler1', 'egg.H1.line');
         return;
       }
     },
@@ -32,8 +32,8 @@ export function makeEggsW4(P) {
       if (!z.inside || ctx.stillTime() < 20) return;
       ctx.found();
       ctx.emit({ type: 'surface', who: 'gerald', prop: 'rubberring', x: P.cove.x, z: P.cove.z });
-      ctx.say('narrator', 'egg.H2.line1');
-      ctx.say('gerald', 'egg.H2.line2');
+      say(ctx, 'narrator', 'egg.H2.line1');
+      say(ctx, 'gerald', 'egg.H2.line2');
     },
   }), ['egg.H2.line1', 'egg.H2.line2']);
 
@@ -41,14 +41,14 @@ export function makeEggsW4(P) {
   const H3 = withLines(egg('H3', 'w4', {
     tick(ctx) {
       if (ctx.isFound() || (ctx.state.tick & 3) !== 0) return;
-      if (ctx.zone('slideTop').inside) { if (ctx.flag('H3.t') == null) ctx.say('narrator', 'egg.H3.line1'); ctx.flag('H3.t', ctx.state.time); return; }
+      if (ctx.zone('slideTop').inside) { if (ctx.flag('H3.t') == null) say(ctx, 'narrator', 'egg.H3.line1'); ctx.flag('H3.t', ctx.state.time); return; }
       const t = ctx.flag('H3.t');
       if (t == null || !ctx.zone('slideEnd').inside) return;
       const limit = ctx.species.id === 'penguin' ? 30 : 24;
-      if (ctx.state.time - t > limit) { ctx.flag('H3.t', null); ctx.say('narrator', 'egg.H3.line3'); return; }
+      if (ctx.state.time - t > limit) { ctx.flag('H3.t', null); say(ctx, 'narrator', 'egg.H3.line3'); return; }
       ctx.found();
       ctx.spawnItem('snowflake', P.slideEnd.x, P.slideEnd.z, { golden: true });
-      ctx.say('narrator', 'egg.H3.line2');
+      say(ctx, 'narrator', 'egg.H3.line2');
     },
   }), ['egg.H3.line1', 'egg.H3.line2', 'egg.H3.line3']);
 
@@ -63,7 +63,7 @@ export function makeEggsW4(P) {
       if (d > 14 * Math.max(1, ctx.player.size / 3)) { ctx.flag('H4.t', 0); return; }
       const t = (ctx.flag('H4.t') || 0) + 16 / 60;
       ctx.flag('H4.t', t);
-      if (t > 5 && ctx.player.size > ctx.state.goals.start * 1.6) { ctx.found(); ctx.say('narrator', 'egg.H4.line'); }
+      if (t > 5 && ctx.player.size > ctx.state.goals.start * 1.6) { ctx.found(); say(ctx, 'narrator', 'egg.H4.line'); }
     },
   }), ['egg.H4.line']);
 
@@ -85,7 +85,7 @@ export function makeEggsW4(P) {
       if (npcDist(ctx, 'pru') > Math.max(4, ctx.player.size * 2) || ctx.stillTime() < 1.5) return;
       ctx.found();
       ctx.buff('tea', 6);
-      ctx.say('pru', 'egg.H8.line');
+      say(ctx, 'pru', 'egg.H8.line');
     },
   }), ['egg.H8.line']);
 
@@ -100,7 +100,7 @@ export function makeEggsW4(P) {
       if (!ctx.flag('aurora')) ctx.flag('aurora', true);
       if (ctx.stillTime() < 3) return;
       ctx.found();
-      ctx.say('narrator', 'egg.H9.line');
+      say(ctx, 'narrator', 'egg.H9.line');
     },
   }), ['egg.H9.line']);
 
@@ -114,7 +114,7 @@ export function makeEggsW4(P) {
       if (ctx.flag('H10.made')) return;
       ctx.flag('H10.made', true);
       ctx.emit({ type: 'snowAngel', x: p.x, z: p.z, species: ctx.species.id, size: p.size });
-      if (!ctx.isFound()) { ctx.found(); ctx.say('player', 'egg.H10.line'); }
+      if (!ctx.isFound()) { ctx.found(); say(ctx, 'player', 'egg.H10.line'); }
     },
   }), ['egg.H10.line']);
 
@@ -127,7 +127,7 @@ export function makeEggsW4(P) {
       if (dx * dx + dz * dz > 0.9) return;
       if (ctx.dist(g.x, g.z) > 10 * Math.max(1, ctx.player.size / 3)) return;
       ctx.found();
-      ctx.say('gerald', 'egg.H11.line');
+      say(ctx, 'gerald', 'egg.H11.line');
     },
   }), ['egg.H11.line']);
 
@@ -138,7 +138,7 @@ export function makeEggsW4(P) {
       if (ctx.isFound() || (ctx.state.tick & 7) !== 0) return;
       if (npcDist(ctx, 'haggis') > 4 * Math.max(1, ctx.player.size / 2)) return;
       ctx.found();
-      ctx.say('narrator', 'egg.H13.line');
+      say(ctx, 'narrator', 'egg.H13.line');
     },
   }), ['egg.H13.line']);
 
@@ -149,7 +149,7 @@ export function makeEggsW4(P) {
       if (countEvents(ctx, 'HX1.barks', ctx.state.time, 4) < 3) return;
       ctx.found();
       for (const n of ctx.state.npcs || []) if (n.kind === 'kid' || n.kind === 'curler' || n.kind === 'piper') ctx.setNpcAnim(n.id, 'dance');
-      ctx.say('piper', 'egg.HX1.line');
+      say(ctx, 'piper', 'egg.HX1.line');
     },
   }), ['egg.HX1.line']);
 
@@ -158,7 +158,7 @@ export function makeEggsW4(P) {
       if (ctx.isFound() || ev.type !== EV.PLAY_BOW) return;
       if (npcDist(ctx, 'hamish') > 8 * Math.max(1, ctx.player.size / 3)) return;
       ctx.found();
-      ctx.say('narrator', 'egg.HX2.line');
+      say(ctx, 'narrator', 'egg.HX2.line');
     },
   }), ['egg.HX2.line']);
 

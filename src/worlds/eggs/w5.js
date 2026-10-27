@@ -1,6 +1,6 @@
 // W5 Marcoverse easter eggs: M1 to M14 (SPEC §7), plus MX extras, G8 and G9.
 
-import { EV, egg, withLines, zoneEgg, gobbleEgg, findNpc, npcDist, countEvents, sayOnce, distXZ, playerName, teaTimeEgg, geraldDisguiseEgg } from './common.js';
+import { EV, say, egg, withLines, zoneEgg, gobbleEgg, findNpc, npcDist, countEvents, sayOnce, distXZ, playerName, teaTimeEgg, geraldDisguiseEgg } from './common.js';
 
 export const HOP_ZONES = ['hop1', 'hop2', 'hop3', 'hop4', 'hop5', 'hop6', 'hop7', 'hop8'];
 
@@ -35,7 +35,7 @@ export function makeEggsW5(P) {
       const g = findNpc(ctx, 'gerald');
       if (!g || distXZ(ev.x, ev.z, g.x, g.z) > 25 * Math.max(1, ctx.player.size / 8)) return;
       ctx.found();
-      ctx.say('gerald', 'egg.M2.line');
+      say(ctx, 'gerald', 'egg.M2.line');
     },
   }), ['egg.M2.line']);
 
@@ -45,7 +45,7 @@ export function makeEggsW5(P) {
       if ((ctx.state.tick & 3) !== 0) return;
       const p = ctx.player;
       const d = ctx.dist(P.door.x, P.door.z);
-      if (ctx.zone('room404').inside && !ctx.isFound()) { ctx.found(); ctx.say('narrator', 'egg.M3.line2'); }
+      if (ctx.zone('room404').inside && !ctx.isFound()) { ctx.found(); say(ctx, 'narrator', 'egg.M3.line2'); }
       if (d > 140) return;
       const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
       const facing = (fx * (P.door.x - p.x) + fz * (P.door.z - p.z)) / Math.max(1e-3, d);
@@ -80,8 +80,8 @@ export function makeEggsW5(P) {
         if (seen[id] || !ctx.zone(id).inside) continue;
         seen[id] = true;
         const n = Object.keys(seen).length;
-        ctx.say('packet', 'egg.M5.line1', { ttl: 64 - n });
-        if (n >= HOP_ZONES.length) { ctx.found(); ctx.say('packet', 'egg.M5.line2'); }
+        say(ctx, 'packet', 'egg.M5.line1', { ttl: 64 - n });
+        if (n >= HOP_ZONES.length) { ctx.found(); say(ctx, 'packet', 'egg.M5.line2'); }
         return;
       }
     },
@@ -110,14 +110,16 @@ export function makeEggsW5(P) {
       if (quiet < 1.0) return;
       const g = barkGroups(arr);
       const tail = g.slice(-3);
-      arr.length = 0;
+      const done = quiet > 3;
+      if (done) arr.length = 0;
       if (tail.length === 3 && tail[0] === 4 && tail[1] === 4 && tail[2] === 3) {
+        arr.length = 0;
         ctx.found();
         ctx.flag('M8.open', true);
         ctx.revealItem('M8');
         ctx.emit({ type: EV.GATE, id: 'firewall', open: true });
-        ctx.say('packet', 'egg.M8.line');
-      } else if (g.length >= 2) sayOnce(ctx, 'packet', 'egg.M8.wrong', null, 12);
+        say(ctx, 'packet', 'egg.M8.line');
+      } else if (done && g.length >= 2) sayOnce(ctx, 'packet', 'egg.M8.wrong', null, 12);
     },
   }), ['egg.M8.line', 'egg.M8.wrong']);
 
@@ -130,7 +132,7 @@ export function makeEggsW5(P) {
       const t = ctx.flag('M10.synack');
       const r = 22 * Math.max(1, ctx.player.size / 8);
       if (t != null) {
-        if (ctx.state.time - t > 10) { ctx.flag('M10.synack', null); ctx.say('synpacket', 'egg.M10.line3'); }
+        if (ctx.state.time - t > 10) { ctx.flag('M10.synack', null); say(ctx, 'synpacket', 'egg.M10.line3'); }
         return;
       }
       if (npcDist(ctx, 'synpacket') > r) return;
@@ -138,7 +140,7 @@ export function makeEggsW5(P) {
       ctx.flag('M10.synack', ctx.state.time);
       ctx.flag('M10.cool', ctx.state.time);
       ctx.setNpcAnim('synpacket', 'wave');
-      ctx.say('synpacket', 'egg.M10.line1');
+      say(ctx, 'synpacket', 'egg.M10.line1');
     },
     onEvent(ev, ctx) {
       if (ctx.isFound() || ev.type !== EV.PLAY_BOW || ctx.flag('M10.synack') == null) return;
@@ -146,7 +148,7 @@ export function makeEggsW5(P) {
       ctx.found();
       const n = findNpc(ctx, 'synpacket');
       ctx.spawnItem('handshake', n ? n.x + 8 : P.syn.x + 8, n ? n.z : P.syn.z, { golden: true });
-      ctx.say('synpacket', 'egg.M10.line2');
+      say(ctx, 'synpacket', 'egg.M10.line2');
     },
   }), ['egg.M10.line1', 'egg.M10.line2', 'egg.M10.line3']);
 
@@ -163,8 +165,8 @@ export function makeEggsW5(P) {
         got[id] = true;
         ctx.setNpcAnim(id, 'hop');
         const n = Object.keys(got).length;
-        if (n < 3) ctx.say(id, 'egg.M12.line1', { n });
-        else { ctx.found(); ctx.say(id, 'egg.M12.line2'); }
+        if (n < 3) say(ctx, id, 'egg.M12.line1', { n });
+        else { ctx.found(); say(ctx, id, 'egg.M12.line2'); }
         return;
       }
     },
@@ -176,7 +178,7 @@ export function makeEggsW5(P) {
       const z = ctx.zone('lag');
       if (!z.inside || z.time < 3) return;
       ctx.found();
-      ctx.say('player', 'egg.M13.line');
+      say(ctx, 'player', 'egg.M13.line');
     },
   }), ['egg.M13.line']);
 
@@ -195,7 +197,7 @@ export function makeEggsW5(P) {
       if (ev.type !== EV.BARK || !ctx.zone('castleGate').inside || ctx.flag('M14.t') != null) return;
       ctx.flag('M14.t', ctx.state.time);
       ctx.emit({ type: 'lights', id: 'datacastle', cycle: true });
-      if (!ctx.isFound()) { ctx.found(); ctx.say('packet', 'egg.M14.line'); }
+      if (!ctx.isFound()) { ctx.found(); say(ctx, 'packet', 'egg.M14.line'); }
     },
   }), ['egg.M14.line']);
 
@@ -207,7 +209,7 @@ export function makeEggsW5(P) {
       if (!inHop) return;
       if (countEvents(ctx, 'MX1.barks', ctx.state.time, 6) < 10) return;
       ctx.found();
-      ctx.say('packet', 'egg.MX1.line');
+      say(ctx, 'packet', 'egg.MX1.line');
     },
   }), ['egg.MX1.line']);
 
@@ -216,7 +218,7 @@ export function makeEggsW5(P) {
       if (ctx.isFound() || (ctx.state.tick & 15) !== 0) return;
       if (ctx.player.size < 100 || !ctx.zone('localhost').inside) return;
       ctx.found();
-      ctx.say('narrator', 'egg.MX2.line');
+      say(ctx, 'narrator', 'egg.MX2.line');
     },
   }), ['egg.MX2.line']);
 

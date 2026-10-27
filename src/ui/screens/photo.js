@@ -4,7 +4,7 @@ import { h, download } from '../dom.js';
 import { icon } from '../icons.js';
 import { iconBtn, btn } from '../kit.js';
 import { t } from '../../core/copy/index.js';
-import { safe } from '../data.js';
+import { safe, tk, prettyId } from '../data.js';
 
 export const PHOTO_FILTERS = {
   none: 'none',
@@ -18,11 +18,14 @@ export const PHOTO_FILTERS = {
 export function photoScreen(ctx) {
   const { app } = ctx;
   const canvas = document.getElementById('game');
-  const ids = Object.keys(PHOTO_FILTERS).filter((k) => k !== 'carrot' || safe(() => app.profile.eggs.has('H5'), false));
+  const rp = safe(() => app.renderer.photo, null);
+  const native = !!(rp && rp.setFilter && Array.isArray(rp.filters));
+  const ids = native ? rp.filters.slice() : Object.keys(PHOTO_FILTERS).filter((k) => k !== 'carrot' || safe(() => app.profile.eggs.has('H5'), false));
   let i = 0;
   const label = h('span', { class: 'gp-filter-name' }, t('ui.filter.none'));
   const apply = () => {
-    label.textContent = t(`ui.filter.${ids[i]}`);
+    label.textContent = tk(`ui.filter.${ids[i]}`, prettyId(ids[i]));
+    if (native) { safe(() => rp.setFilter(ids[i])); return; }
     if (canvas) canvas.style.filter = PHOTO_FILTERS[ids[i]] === 'none' ? '' : PHOTO_FILTERS[ids[i]];
   };
   const step = (d) => { i = (i + d + ids.length) % ids.length; apply(); ctx.sound('tick'); };
@@ -34,7 +37,7 @@ export function photoScreen(ctx) {
     ctx.fxLayer.appendChild(Object.assign(h('div', { class: 'gp-flash' }), {}));
     setTimeout(() => ctx.fxLayer.querySelector('.gp-flash')?.remove(), 600);
     let out = url;
-    if (ids[i] !== 'none') {
+    if (!native && ids[i] !== 'none') {
       out = await new Promise((res) => {
         const im = new Image();
         im.onload = () => {
@@ -52,7 +55,7 @@ export function photoScreen(ctx) {
     download(out, `${app.GAME?.slug || 'gobblepaws'}-photo.png`);
     ctx.toast(t('ui.photo.saved'), { icon: 'camera' });
   }
-  const exit = () => { if (canvas) canvas.style.filter = ''; safe(() => app.exitPhoto()); ctx.show('pause'); };
+  const exit = () => { if (canvas) canvas.style.filter = ''; if (native) safe(() => rp.setFilter('none')); safe(() => app.exitPhoto()); ctx.show('pause'); };
 
   const shutter = h('button', { class: 'gp-shutter gp-nav', type: 'button', 'aria-label': t('ui.photo.snap'), 'data-default': '1' }, icon('camera'));
   shutter.addEventListener('click', snap);

@@ -5,6 +5,7 @@ import { TAU, clamp01, angleDelta } from '../core/math.js';
 import { TUNE } from './tune.js';
 import { gobbleInRadius, nearestGobbleable, startGobble } from './gobble.js';
 import { IS_GONE, IS_GOBBLING, IS_HIDDEN } from './items.js';
+import { hypot } from './util.js';
 
 export function resetSigMods(M) {
   M.effSizeMult = 1; M.extraReach = 0; M.speedMult = 1; M.steerMult = 1; M.gripMult = 1;
@@ -98,7 +99,7 @@ function shockwave(S, r, strength) {
     const i = hits[j];
     if (I.gobbleable[i] || I.state[i] >= IS_GOBBLING) continue;
     const dx = I.x[i] - p.x, dz = I.z[i] - p.z;
-    const d = Math.hypot(dx, dz);
+    const d = hypot(dx, dz);
     if (d > r + S.X.radius[i]) continue;
     S.items.wobble(i, strength * (1 - d / (r + S.X.radius[i] + 1e-3)) * 3, dx, dz);
   }
@@ -112,7 +113,7 @@ export function findScent(S) {
   let best = -1, bestScore = -1;
   for (let i = 0; i < I.count; i++) {
     if (!I.golden[i] || I.state[i] >= IS_GOBBLING) continue;
-    const d = Math.hypot(I.x[i] - p.x, I.z[i] - p.z);
+    const d = hypot(I.x[i] - p.x, I.z[i] - p.z);
     if (d < range && (best < 0 || d < bestScore)) { best = i; bestScore = d; }
   }
   if (best < 0) {
@@ -129,9 +130,20 @@ export function findScent(S) {
         const dx = I.x[o] - I.x[i], dz = I.z[o] - I.z[i];
         if (dx * dx + dz * dz < cl * cl) c++;
       }
-      const d = Math.hypot(I.x[i] - p.x, I.z[i] - p.z);
+      const d = hypot(I.x[i] - p.x, I.z[i] - p.z);
       const score = c - d / (range * 0.25);
       if (score > bestScore) { bestScore = score; best = i; }
+    }
+    if (best >= 0) {
+      // aim for the middle of the cluster
+      let sx = 0, sz = 0, c = 0;
+      for (let b = 0; b < n; b++) {
+        const o = cand[b];
+        const dx = I.x[o] - I.x[best], dz = I.z[o] - I.z[best];
+        if (dx * dx + dz * dz < cl * cl) { sx += I.x[o]; sz += I.z[o]; c++; }
+      }
+      sg.tx = sx / c; sg.tz = sz / c; sg.target = best;
+      return;
     }
   }
   if (best >= 0) { sg.tx = I.x[best]; sg.tz = I.z[best]; sg.target = best; }
@@ -143,8 +155,8 @@ const START = {
   sniffBoost(S) {
     const p = S.state.player, sg = p.sig;
     if (sg.tx == null) findScent(S);
-    sg.dur = 0.55 + 0.65 * sg.power;
-    sg.speed = S.derived.top * (1.9 + 0.6 * sg.power);
+    sg.dur = 0.6 + 0.9 * sg.power;
+    sg.speed = S.derived.top * (2.0 + 0.7 * sg.power);
   },
   pounce(S) {
     const p = S.state.player, sp = S.species;
@@ -216,7 +228,7 @@ const UPDATE = {
   sniffBoost(S, dt) {
     const p = S.state.player, sg = p.sig, M = S.sigMods;
     const dx = sg.tx - p.x, dz = sg.tz - p.z;
-    const d = Math.hypot(dx, dz);
+    const d = hypot(dx, dz);
     M.steerYaw = Math.atan2(dx, dz); M.steerRate = 9;
     M.forceSpeed = sg.speed;
     M.extraReach = p.size * 0.3;
@@ -297,7 +309,7 @@ const UPDATE = {
       p.vx *= fr; p.vz *= fr;
       if (R.inputMag > 0) { p.vx += Math.sin(R.inputYaw) * D.top * 0.8 * dt; p.vz += Math.cos(R.inputYaw) * D.top * 0.8 * dt; }
     }
-    const s = Math.hypot(p.vx, p.vz), cap = D.top * 2.4;
+    const s = hypot(p.vx, p.vz), cap = D.top * 2.4;
     if (s > cap) { p.vx *= cap / s; p.vz *= cap / s; }
     if (s > 0.05 * p.size) M.steerYaw = Math.atan2(p.vx, p.vz), M.steerRate = 20;
     R.moveSpeed = s;
@@ -325,7 +337,7 @@ const UPDATE = {
     const wx = sg.tx + Math.sin(th) * rc, wz = sg.tz + Math.cos(th) * rc;
     M.directVel = true; M.noJump = true;
     const vx = (wx - p.x) / Math.max(dt, 1e-4), vz = (wz - p.z) / Math.max(dt, 1e-4);
-    const v = Math.hypot(vx, vz), cap = S.derived.top * 4;
+    const v = hypot(vx, vz), cap = S.derived.top * 4;
     const k = v > cap ? cap / v : 1;
     p.vx = vx * k; p.vz = vz * k;
     M.steerYaw = Math.atan2(p.vx, p.vz); M.steerRate = 30;
@@ -349,7 +361,7 @@ const UPDATE = {
       const i = hits[j];
       if (!I.almost[i] || I.state[i] >= IS_GOBBLING) continue;
       const dx = p.x - I.x[i], dz = p.z - I.z[i];
-      const d = Math.hypot(dx, dz);
+      const d = hypot(dx, dz);
       if (d > range || d < S.derived.radius + X.radius[i]) continue;
       if ((-dx * fx - dz * fz) / (d || 1) < 0.8) continue;
       const v = Math.min(d, p.size * 2.5) * dt;

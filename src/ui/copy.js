@@ -130,7 +130,7 @@ export const UI_COPY = {
   'ui.dress.tab.colours': 'Colours',
   'ui.dress.tab.pattern': 'Markings',
   'ui.dress.tab.accessories': 'Clobber',
-  'ui.dress.tab.extras': 'Trails and sounds',
+  'ui.dress.tab.extras': 'Flair',
   'ui.dress.tab.pet': 'Your pet',
   'ui.dress.slot.base': 'Coat',
   'ui.dress.slot.secondary': 'Second coat',
@@ -450,6 +450,8 @@ export const UI_COPY = {
   'ui.filter.dreamy': 'Daydream',
   'ui.filter.pop': 'Poster',
   'ui.filter.carrot': 'Carrot cam',
+  'ui.filter.golden': 'Golden hour',
+  'ui.filter.storybook': 'Storybook',
 };
 
 registerCopy('en-GB', UI_COPY);

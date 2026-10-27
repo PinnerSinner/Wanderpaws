@@ -17,7 +17,7 @@ export function normPath(path) {
 
 // Regions: {x, z, r} or {minX, maxX, minZ, maxZ}. Compiled to a test function's data.
 export function compileRegion(o, fallbackR = 3) {
-  if (o && o.minX != null) return { rect: true, minX: +o.minX, maxX: +o.maxX, minZ: +o.minZ, maxZ: +o.maxZ, x: (+o.minX + +o.maxX) / 2, z: (+o.minZ + +o.maxZ) / 2, r: Math.hypot(o.maxX - o.minX, o.maxZ - o.minZ) / 2 };
+  if (o && o.minX != null) return { rect: true, minX: +o.minX, maxX: +o.maxX, minZ: +o.minZ, maxZ: +o.maxZ, x: (+o.minX + +o.maxX) / 2, z: (+o.minZ + +o.maxZ) / 2, r: hypot(o.maxX - o.minX, o.maxZ - o.minZ) / 2 };
   if (o && o.rect && o.rect.minX != null) return compileRegion(o.rect, fallbackR);
   return { rect: false, x: +(o && o.x) || 0, z: +(o && o.z) || 0, r: +(o && o.r) || fallbackR };
 }
@@ -36,4 +36,9 @@ export function hashNumbers(h, v) {
   h ^= (f >>> 16) & 255; h = Math.imul(h, 0x01000193);
   h ^= (f >>> 24) & 255; h = Math.imul(h, 0x01000193);
   return h >>> 0;
+}
+
+// Math.hypot allocates an argument array in V8; this does not.
+export function hypot(a, b, c) {
+  return c === undefined ? Math.sqrt(a * a + b * b) : Math.sqrt(a * a + b * b + c * c);
 }

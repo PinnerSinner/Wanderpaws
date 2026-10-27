@@ -1,6 +1,6 @@
 // W3 Tijuca easter eggs: T1 to T13 (SPEC §7), plus TX extras, G8 and G9.
 
-import { EV, egg, withLines, zoneEgg, gobbleEgg, npcEgg, findNpc, npcDist, near, sayOnce, distXZ, playerName, teaTimeEgg, geraldDisguiseEgg } from './common.js';
+import { EV, say, egg, withLines, zoneEgg, gobbleEgg, npcEgg, findNpc, npcDist, near, sayOnce, distXZ, playerName, teaTimeEgg, geraldDisguiseEgg } from './common.js';
 
 export const LILY_ZONES = ['lily1', 'lily2', 'lily3', 'lily4', 'lily5']; // lowest pitch (biggest pad) first
 
@@ -17,7 +17,7 @@ export function makeEggsW3(P) {
       sayOnce(ctx, 'toucan', 'egg.T1.heckle', null, 30);
       if (ctx.dist(t.x, t.z) > 30 * big || ctx.dist(g.x, g.z) > 30 * big || ctx.stillTime() < 1.5) return;
       ctx.found();
-      ctx.say('toucan', 'egg.T1.line');
+      say(ctx, 'toucan', 'egg.T1.line');
     },
   }), ['egg.T1.heckle', 'egg.T1.line']);
 
@@ -25,12 +25,12 @@ export function makeEggsW3(P) {
   const T2 = withLines(egg('T2', 'w3', {
     tick(ctx) {
       if ((ctx.state.tick & 15) !== 0 || ctx.flag('T2.seen')) return;
-      if (ctx.zone('cave').inside) { ctx.flag('T2.seen', true); ctx.say('player', 'egg.T2.line1'); }
+      if (ctx.zone('cave').inside) { ctx.flag('T2.seen', true); say(ctx, 'player', 'egg.T2.line1'); }
     },
     onEvent(ev, ctx) {
       if (ctx.isFound() || ev.type !== EV.GOBBLE || ev.itemType !== 'mango' || !ev.golden) return;
       ctx.found();
-      ctx.say('narrator', 'egg.T2.line2');
+      say(ctx, 'narrator', 'egg.T2.line2');
     },
   }), ['egg.T2.line1', 'egg.T2.line2']);
 
@@ -40,7 +40,7 @@ export function makeEggsW3(P) {
       if (ctx.isFound() || ctx.species.id !== 'capybara' || ctx.stillTime() < 10) return;
       ctx.found();
       ctx.emit({ type: 'pileOn', kinds: ['marmoset', 'duckling', 'frog'], x: ctx.player.x, z: ctx.player.z });
-      ctx.say('player', 'egg.T3.line');
+      say(ctx, 'player', 'egg.T3.line');
     },
   }), ['egg.T3.line']);
 
@@ -53,7 +53,7 @@ export function makeEggsW3(P) {
       ctx.flag('T4.stolen', true);
       ctx.flag('T4.t', ctx.state.time);
       ctx.emit({ type: 'hatStolen', by: 'marmoset' });
-      ctx.say('marmoset', 'egg.T4.line1');
+      say(ctx, 'marmoset', 'egg.T4.line1');
     },
     tick(ctx) {
       if (ctx.isFound() || !ctx.flag('T4.stolen') || (ctx.state.tick & 7) !== 0) return;
@@ -62,7 +62,7 @@ export function makeEggsW3(P) {
       ctx.found();
       ctx.emit({ type: 'hatReturned', by: 'marmoset' });
       ctx.emit({ type: 'bonus', amount: 25, reason: 'T4' });
-      ctx.say('marmoset', 'egg.T4.line2');
+      say(ctx, 'marmoset', 'egg.T4.line2');
     },
   }), ['egg.T4.line1', 'egg.T4.line2']);
 
@@ -78,8 +78,8 @@ export function makeEggsW3(P) {
       ctx.found();
       const p = ctx.player;
       const sliding = (p.sig && p.sig.active && p.sig.kind === 'bellySlide') || ctx.species.stats.slideSpeed > 1;
-      if (sliding) { ctx.buff('speed', 4); ctx.say('player', 'egg.T6.line2'); }
-      else ctx.say('player', 'egg.T6.line1');
+      if (sliding) { ctx.buff('speed', 4); say(ctx, 'player', 'egg.T6.line2'); }
+      else say(ctx, 'player', 'egg.T6.line1');
     },
   }), ['egg.T6.line1', 'egg.T6.line2']);
 
@@ -99,7 +99,7 @@ export function makeEggsW3(P) {
       const b = ev.type === EV.BARK && ctx.dist(P.router5g.x, P.router5g.z) < Math.max(5, ctx.player.size * 2);
       if (!g && !b) return;
       ctx.found();
-      ctx.say('narrator', 'egg.T8.line');
+      say(ctx, 'narrator', 'egg.T8.line');
     },
   }), ['egg.T8.line']);
 
@@ -109,7 +109,7 @@ export function makeEggsW3(P) {
     tick(ctx) {
       if (ctx.isFound() || (ctx.state.tick & 7) !== 0 || !ctx.zone('jaguar').inside) return;
       const cat = ctx.species.id === 'cat' || ctx.species.id === 'routercat';
-      if (cat && ctx.stillTime() >= 1) { ctx.found(); ctx.say('player', 'egg.T10.line1'); }
+      if (cat && ctx.stillTime() >= 1) { ctx.found(); say(ctx, 'player', 'egg.T10.line1'); }
       else if (!cat) sayOnce(ctx, 'narrator', 'egg.T10.line2', null, 40);
     },
   }), ['egg.T10.line1', 'egg.T10.line2']);
@@ -133,7 +133,7 @@ export function makeEggsW3(P) {
       if ((ctx.flag('T12.next') || 0) >= LILY_ZONES.length) {
         ctx.found();
         ctx.spawnItem('lilyflower', P.lilyPrize.x, P.lilyPrize.z, { golden: true });
-        ctx.say('narrator', 'egg.T12.line');
+        say(ctx, 'narrator', 'egg.T12.line');
       }
     },
   }), ['egg.T12.line']);
@@ -147,7 +147,7 @@ export function makeEggsW3(P) {
       const said = ctx.flag('T13.n') || 0;
       if (n <= said || said >= words.length) return;
       ctx.flag('T13.n', said + 1);
-      ctx.say('sloth', words[said]);
+      say(ctx, 'sloth', words[said]);
       if (said + 1 === words.length && npcDist(ctx, 'sloth') < 60 * Math.max(1, ctx.player.size / 4)) ctx.found();
     },
   }), words);

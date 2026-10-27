@@ -3,6 +3,7 @@
 // The capybara's chill aura freezes them mid-strut. Grumpy pigeon squads
 // (hazard 'pigeons') swoop at you now and then.
 import { EV } from '../core/events.js';
+import { hypot } from './util.js';
 
 export const BIRD_KINDS = ['pigeon', 'gull'];
 export const BIRD_GROUND = 0, BIRD_FLY = 1, BIRD_FROZEN = 2, BIRD_LAND = 3, BIRD_SWOOP = 4;
@@ -65,8 +66,8 @@ export function stepBirds(S, dt) {
     // squad swoops
     if (fl.squad) {
       fl.swoopT -= dt;
-      const pd = Math.hypot(p.x - fl.x, p.z - fl.z);
-      const calm = M.calmR > 0 && Math.hypot(fl.x - M.calmX, fl.z - M.calmZ) < M.calmR + fl.r;
+      const pd = hypot(p.x - fl.x, p.z - fl.z);
+      const calm = M.calmR > 0 && hypot(fl.x - M.calmX, fl.z - M.calmZ) < M.calmR + fl.r;
       if (fl.swoopT <= 0 && pd < 12 + p.size * 4 && !calm && S.state.phase === 'play') {
         fl.swoopT = rng.range(6, 11) * (S.assist ? 2 : 1);
         for (let i = fl.first; i < fl.first + fl.n; i++) {
@@ -81,8 +82,8 @@ export function stepBirds(S, dt) {
     for (let i = fl.first; i < fl.first + fl.n; i++) {
       const s = B.state[i];
       const dx = B.x[i] - p.x, dz = B.z[i] - p.z;
-      const d = Math.hypot(dx, dz);
-      const inCalm = M.calmR > 0 && Math.hypot(B.x[i] - M.calmX, B.z[i] - M.calmZ) < M.calmR;
+      const d = hypot(dx, dz);
+      const inCalm = M.calmR > 0 && hypot(B.x[i] - M.calmX, B.z[i] - M.calmZ) < M.calmR;
       if (s === BIRD_GROUND || s === BIRD_FROZEN) {
         if (inCalm) { B.state[i] = BIRD_FROZEN; B.vx[i] = B.vz[i] = 0; continue; }
         if (s === BIRD_FROZEN) B.state[i] = BIRD_GROUND;
@@ -101,7 +102,7 @@ export function stepBirds(S, dt) {
           X.t[i] = rng.range(0.8, 3);
           const a = rng.range(0, Math.PI * 2);
           const hx = fl.x - B.x[i], hz = fl.z - B.z[i];
-          const back = Math.hypot(hx, hz) > fl.r ? 0.6 : 0;
+          const back = hypot(hx, hz) > fl.r ? 0.6 : 0;
           const sp = rng.chance(0.4) ? 0 : 0.35;
           B.vx[i] = (Math.sin(a) + hx * back) * sp; B.vz[i] = (Math.cos(a) + hz * back) * sp;
         }
@@ -114,7 +115,7 @@ export function stepBirds(S, dt) {
         X.t[i] -= dt;
         // dive at the player, then peel away
         const tx = p.x - B.x[i], ty = p.y + S.derived.height * 0.7 - B.y[i], tz = p.z - B.z[i];
-        const tl = Math.hypot(tx, ty, tz) || 1;
+        const tl = hypot(tx, ty, tz) || 1;
         const sp = 7 + p.size * 2;
         B.vx[i] += (tx / tl * sp - B.vx[i]) * Math.min(1, 3 * dt);
         B.vy[i] += (ty / tl * sp - B.vy[i]) * Math.min(1, 3 * dt);
@@ -140,14 +141,14 @@ export function stepBirds(S, dt) {
         fx += sx * 1.5; fy += sy * 1.5; fz += sz * 1.5;
         // orbit home
         const hx = fl.x - B.x[i], hz = fl.z - B.z[i];
-        const hd = Math.hypot(hx, hz) || 1;
+        const hd = hypot(hx, hz) || 1;
         fx += hx / hd * Math.min(4, hd * 0.25) + (-hz / hd) * 2.5;
         fz += hz / hd * Math.min(4, hd * 0.25) + (hx / hd) * 2.5;
         fy += (cruise - B.y[i]) * 1.2;
         // keep away from the player
         if (d < scareR * 1.5) { fx += dx / (d || 1) * 6; fz += dz / (d || 1) * 6; }
         B.vx[i] += fx * k; B.vy[i] += fy * k; B.vz[i] += fz * k;
-        const v = Math.hypot(B.vx[i], B.vy[i], B.vz[i]);
+        const v = hypot(B.vx[i], B.vy[i], B.vz[i]);
         const vmax = 8 + p.size * 0.8;
         if (v > vmax) { B.vx[i] *= vmax / v; B.vy[i] *= vmax / v; B.vz[i] *= vmax / v; }
         if (X.t[i] <= 0 && d > scareR * 2) {
@@ -158,7 +159,7 @@ export function stepBirds(S, dt) {
       } else if (s === BIRD_LAND) {
         const tx = X.tx[i] - B.x[i], tz = X.tz[i] - B.z[i];
         const gy = T.heightAt(B.x[i], B.z[i]);
-        const td = Math.hypot(tx, tz) || 1;
+        const td = hypot(tx, tz) || 1;
         const sp = Math.min(6, td * 1.5 + 0.5);
         B.vx[i] += (tx / td * sp - B.vx[i]) * Math.min(1, 3 * dt);
         B.vz[i] += (tz / td * sp - B.vz[i]) * Math.min(1, 3 * dt);

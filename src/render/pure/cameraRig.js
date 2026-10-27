@@ -25,7 +25,7 @@ export const CAM = Object.freeze({
 // Small animals get a little extra distance so the world still reads around them.
 export function armDistance(size) {
   const s = Math.max(0.02, size);
-  return 0.85 + s * 5.0 + Math.sqrt(s) * 0.6;
+  return 0.45 + s * 4.4 + Math.sqrt(s) * 0.5;
 }
 export function focusHeight(size) { return Math.max(0.02, size) * 0.55; }
 

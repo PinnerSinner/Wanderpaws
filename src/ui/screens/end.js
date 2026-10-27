@@ -11,6 +11,7 @@ import { safe, tk, worldName, speciesName, cosmeticName, getWorldData } from '..
 import { download } from '../dom.js';
 import { renderResultCard } from '../card.js';
 import { startRun } from './flow.js';
+import { starRuleTexts } from './worlds.js';
 
 export function endScreen(ctx, params) {
   const { app } = ctx;
@@ -98,8 +99,11 @@ export function endScreen(ctx, params) {
     if (url) { download(url, `${app.GAME?.slug || 'gobblepaws'}-${run.worldId}.png`); ctx.toast(t('ui.end.cardSaved'), { icon: 'photo' }); }
   }
 
+  const w = getWorldData(app, run.worldId);
+  const rules = w && run.mode !== 'zoomies' ? h('div', { class: 'gp-panel gp-pad gp-star-list gp-pop', vars: { i: 7 } }, starRuleTexts(w, run.mode).map((r, i) => h('div', { class: 'gp-row' }, h('span', { class: 'gp-star' + (stars[i] ? ' gp-on' : '') }, icon('star')), h('span', null, r), stars[i] ? h('span', { class: 'gp-chip gp-chip--sea', style: { marginLeft: 'auto' } }, icon('check')) : null))) : null;
   const side = h('div', { class: 'gp-end-side' },
     h('div', { class: 'gp-end-stats' }, sSize.el, sItems.el, sBic.el, sTime.el),
+    rules,
     unlocks.length ? h('div', { class: 'gp-col', style: { gap: 'calc(0.8 * var(--u))' } }, h('span', { class: 'gp-label' }, t('ui.end.unlocks')), h('div', { class: 'gp-unlocks' }, unlocks)) : null,
     h('div', { class: 'gp-end-btns' }, btns));
 

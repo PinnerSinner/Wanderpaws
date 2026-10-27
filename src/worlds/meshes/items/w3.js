@@ -316,6 +316,25 @@ export const w3 = {
     b.extrude([[0, 0], [0.9, 0.25], [0, 0.5]], 0.03, '#ffd23f', { x: 2.6, y: 6.5, z: 2.3 });
   },
 
+  treehouse(b) {
+    const bark = (x, y, z, wx, wy) => mixRgb('#8a5a3b', '#6a4028', smooth(-0.4, 0.4, Math.sin(Math.atan2(z, x) * 9 + wy)));
+    b.cyl(0.7, 1.1, 7.5, C.bark, { y: 3.75, seg: 10, cf: bark });
+    for (let i = 0; i < 5; i++) { const a = (i / 5) * TAU; b.capsule(0.35, 1.4, C.bark, { x: Math.cos(a) * 1.1, y: 0.3, z: Math.sin(a) * 1.1, rz: Math.cos(a) * 1.2, rx: -Math.sin(a) * 1.2, seg: 6, cf: bark }); }
+    for (const [a, l] of [[0.5, 3.2], [2.4, 2.8], [4.2, 3.0]]) b.rod([0, 6.5, 0], [Math.cos(a) * l, 8.6, Math.sin(a) * l], 0.3, C.bark, { r2: 0.15, seg: 6 });
+    b.box(4.6, 0.3, 4.2, C.wood, { y: 4.6, r: 0.05, fc: true, cf: (x, y, z, wx) => (Math.floor((wx + 3) * 2.2) % 2 ? rgb(C.wood) : rgb('#c8925a')) });
+    b.box(3.4, 2.0, 2.8, '#7fc8e8', { y: 5.75, z: -0.3, r: 0.06, fc: true, cf: (x, y, z, wx, wy) => (Math.floor(wy * 3) % 2 ? rgb('#7fc8e8') : rgb('#6ab8da')) });
+    b.box(0.9, 1.3, 0.08, '#5a3a24', { y: 5.4, z: 1.12 });
+    b.box(0.7, 0.6, 0.08, '#ffe9a8', { x: 1.1, y: 6.0, z: 1.12 });
+    b.extrude([[-2.0, 0], [2.0, 0], [0, 1.5]], 3.6, '#e8473a', { y: 6.75, z: -0.3, fc: true, cf: (x, y, z, wx, wy) => (Math.floor(wy * 3) % 2 ? rgb('#e8473a') : rgb('#c83a30')) });
+    for (const [x, z, len] of [[0, 2.1, 4.6], [0, -2.1, 4.6]]) { b.box(len, 0.08, 0.08, C.woodDk, { x, y: 5.6, z }); for (let i = 0; i <= 8; i++) b.box(0.06, 0.8, 0.06, C.woodDk, { x: -2.3 + i * 0.575, y: 5.2, z }); }
+    for (const sx of [1.7, 2.2]) b.rod([sx, 4.5, 2.0], [sx, 0, 2.4], 0.04, C.rope, { seg: 3 });
+    for (let i = 1; i < 8; i++) b.box(0.6, 0.06, 0.1, C.woodDk, { x: 1.95, y: i * 0.56, z: 2.4 - i * 0.05 });
+    const leaves = [[0, 9.2, 0, 2.8], [2.4, 8.6, 1.0, 2.0], [-2.2, 8.4, 1.2, 2.1], [0.6, 8.5, -2.4, 2.2], [-1.0, 10.2, -0.6, 1.8]];
+    for (const [x, y, z, r] of leaves) b.ico(r, C.leaf, { x, y, z, detail: 1, df: lumpy(0.12, 0.8), cf: (lx, ly, lz, wx, wy) => mixRgb('#2f8a4a', '#6cc85a', smooth(7, 11, wy)) });
+    b.extrude([[0, 0], [0.9, 0.3], [0, 0.6]], 0.03, '#ffd23f', { x: -0.1, y: 11.6 });
+    b.rod([-0.1, 10.6, 0], [-0.1, 12.2, 0], 0.04, '#ddd', { seg: 4 });
+  },
+
   palmtree(b) {
     // a gently curved ringed trunk with a crown of fronds and coconuts
     const pts = [];

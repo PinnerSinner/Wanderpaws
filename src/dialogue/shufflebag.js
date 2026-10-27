@@ -8,6 +8,9 @@ export function createShuffleBag(items, rng, { weightOf = (it) => it.w ?? 1 } = 
   let last = null;
 
   function refill(filter) {
+    // leftover copies (only possible when they equal the last line) are kept
+    // and dealt first next time, so heavy lines keep their full weight
+    const keep = bag;
     bag = [];
     for (const it of items) {
       if (filter && !filter(it)) continue;
@@ -20,6 +23,7 @@ export function createShuffleBag(items, rng, { weightOf = (it) => it.w ?? 1 } = 
       const j = Math.floor(random() * (i + 1));
       const tmp = bag[i]; bag[i] = bag[j]; bag[j] = tmp;
     }
+    if (keep.length) bag = bag.concat(filter ? keep.filter(filter) : keep);
   }
 
   function take(filter) {

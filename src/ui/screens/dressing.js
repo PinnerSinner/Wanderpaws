@@ -8,7 +8,7 @@ import { patternSwatch, PATTERNS } from '../art.js';
 import { btn, iconBtn, topBar, portraitEl, biccieChip, sliderRow, splitPanel } from '../kit.js';
 import { t } from '../../core/copy/index.js';
 import { hexToHsl, hslToHex, formatInt } from '../logic.js';
-import { safe, tk, speciesName, cosmeticName } from '../data.js';
+import { safe, tk, speciesName, cosmeticName, prettyId } from '../data.js';
 import * as Customise from '../../animals/customise.js';
 import { createRng } from '../../core/rng.js';
 import { petPanel } from './pet.js';
@@ -214,7 +214,7 @@ export function dressingScreen(ctx, params) {
     const presets = [{ id: '__default', nameKey: 'ui.dress.default', look: sp.defaults }, ...(sp.presets || [])];
     const presetGrid = h('div', { class: 'gp-presets' }, presets.map((pr) => {
       const l = { ...sp.defaults, ...pr.look };
-      const b = h('button', { class: 'gp-preset gp-nav', type: 'button' }, h('span', { class: 'gp-dots' }, ['base', 'belly', 'tips'].map((k) => h('i', { vars: { c: l[k] } }))), h('span', null, tk(pr.nameKey, pr.id)));
+      const b = h('button', { class: 'gp-preset gp-nav', type: 'button' }, h('span', { class: 'gp-dots' }, ['base', 'belly', 'tips'].map((k) => h('i', { vars: { c: l[k] } }))), h('span', null, tk(pr.nameKey, prettyId(pr.id))));
       b.addEventListener('click', () => {
         ctx.sound('select');
         if (pr.id === '__default') look = { ...cloneLook(sp.defaults), accessories: look.accessories, trail: look.trail, soundPack: look.soundPack, decal: look.decal };

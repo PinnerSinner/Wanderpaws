@@ -1,17 +1,17 @@
 // W2 London easter eggs: L1 to L13 (SPEC §7), plus LX extras, G8 and G9.
 
-import { EV, egg, withLines, zoneEgg, gobbleEgg, npcEgg, findNpc, npcDist, countEvents, sayOnce, distXZ, playerName, teaTimeEgg, geraldDisguiseEgg } from './common.js';
+import { EV, say, egg, withLines, zoneEgg, gobbleEgg, npcEgg, findNpc, npcDist, countEvents, sayOnce, distXZ, playerName, teaTimeEgg, geraldDisguiseEgg } from './common.js';
 
 export function makeEggsW2(P) {
   const L1 = withLines(egg('L1', 'w2', {
     tick(ctx) {
       const z = ctx.zone('phonebox');
       if (!ctx.isFound()) {
-        if (z.inside && ctx.stillTime() >= 2) { ctx.found(); ctx.say('narrator', 'egg.L1.line1'); ctx.flag('L1.t', ctx.state.time); }
+        if (z.inside && ctx.stillTime() >= 2) { ctx.found(); say(ctx, 'narrator', 'egg.L1.line1'); ctx.flag('L1.t', ctx.state.time); }
         return;
       }
       const t = ctx.flag('L1.t');
-      if (t != null && z.inside && ctx.state.time - t > 4.5) { ctx.flag('L1.t', null); ctx.say('narrator', 'egg.L1.line2'); }
+      if (t != null && z.inside && ctx.state.time - t > 4.5) { ctx.flag('L1.t', null); say(ctx, 'narrator', 'egg.L1.line2'); }
     },
   }), ['egg.L1.line1', 'egg.L1.line2']);
 
@@ -25,7 +25,7 @@ export function makeEggsW2(P) {
       ctx.found();
       ctx.flag('bus127', true);
       ctx.spawnItem('doubledecker', P.bus.x, P.bus.z, {});
-      ctx.say('narrator', 'egg.L3.line');
+      say(ctx, 'narrator', 'egg.L3.line');
     },
   }), ['egg.L3.line']);
 
@@ -50,7 +50,7 @@ export function makeEggsW2(P) {
         if (ctx.dist(n.x, n.z) > r) continue;
         ctx.found();
         ctx.setNpcAnim(n.id, 'tut');
-        ctx.say(n.id, 'egg.L4.line');
+        say(ctx, n.id, 'egg.L4.line');
         return;
       }
     },
@@ -63,7 +63,7 @@ export function makeEggsW2(P) {
       const ids = ['q1', 'q2', 'q3', 'q4', 'q5'];
       for (const id of ids) ctx.setNpcAnim(id, 'tut');
       ctx.emit({ type: 'tut', ids });
-      ctx.say('q3', 'egg.L5.line');
+      say(ctx, 'q3', 'egg.L5.line');
     },
   }), ['egg.L5.line']);
 
@@ -84,7 +84,7 @@ export function makeEggsW2(P) {
       if (d < 1.8 * big || chase > 7) {
         ctx.found();
         ctx.spawnItem('scone', sq.x, sq.z, { golden: true });
-        ctx.say('narrator', 'egg.L7.line2');
+        say(ctx, 'narrator', 'egg.L7.line2');
       }
     },
   }), ['egg.L7.line1', 'egg.L7.line2']);
@@ -108,7 +108,7 @@ export function makeEggsW2(P) {
     onEvent(ev, ctx) {
       if (ctx.isFound() || ev.type !== EV.GOBBLE || ev.itemType !== 'brolly') return;
       ctx.found();
-      ctx.say('player', 'egg.L8.line2');
+      say(ctx, 'player', 'egg.L8.line2');
     },
   }), ['egg.L8.line1', 'egg.L8.line2']);
 
@@ -117,7 +117,7 @@ export function makeEggsW2(P) {
       if (ctx.isFound() || (ev.type !== EV.BARK && ev.type !== EV.PLAY_BOW)) return;
       if (ctx.dist(P.postbox.x, P.postbox.z) > Math.max(4, ctx.player.size * 2.5)) return;
       ctx.found();
-      ctx.say('narrator', 'egg.L9.line');
+      say(ctx, 'narrator', 'egg.L9.line');
     },
   }), ['egg.L9.line']);
 
@@ -128,11 +128,11 @@ export function makeEggsW2(P) {
       if (ctx.isFound() || ev.type !== EV.PLAY_BOW) return;
       if (npcDist(ctx, 'sentry') > Math.max(7, ctx.player.size * 3)) return;
       const n = countEvents(ctx, 'L11.bows', ctx.state.time, 40);
-      if (n < 3) { ctx.say('narrator', 'egg.L11.line1'); return; }
+      if (n < 3) { say(ctx, 'narrator', 'egg.L11.line1'); return; }
       ctx.found();
       const s = findNpc(ctx, 'sentry');
       if (s) s.mood = 'smile';
-      ctx.say('sentry', 'egg.L11.line2');
+      say(ctx, 'sentry', 'egg.L11.line2');
     },
   }), ['egg.L11.line1', 'egg.L11.line2']);
 
@@ -146,7 +146,7 @@ export function makeEggsW2(P) {
       ctx.found();
       ctx.flag('teaMult', 2);
       ctx.buff('tea', 12);
-      ctx.say('pru', 'egg.L13.line');
+      say(ctx, 'pru', 'egg.L13.line');
     },
   }), ['egg.L13.line']);
 
@@ -157,7 +157,7 @@ export function makeEggsW2(P) {
       if (ctx.isFound() || ev.type !== EV.GOBBLE || ev.itemType !== 'teamug') return;
       const n = (ctx.flag('LX2.n') || 0) + 1;
       ctx.flag('LX2.n', n);
-      if (n >= 12) { ctx.found(); ctx.say('pru', 'egg.LX2.line'); }
+      if (n >= 12) { ctx.found(); say(ctx, 'pru', 'egg.LX2.line'); }
     },
   }), ['egg.LX2.line']);
 

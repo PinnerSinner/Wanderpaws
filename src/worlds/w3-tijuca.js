@@ -284,7 +284,7 @@ export const W3 = {
   ],
   eggs: makeEggsW3(P),
   goals: {
-    start: 0.8, goal: 18, stretch: 27, timer: 330, par: 260, growthK: 1.6,
+    start: 0.8, goal: 18, stretch: 27, timer: 330, par: 280, growthK: 2.8,
     milestones: [1.5, 3, 6, 10, 20],
     star3: { kind: 'golden' },
   },

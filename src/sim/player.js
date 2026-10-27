@@ -6,6 +6,7 @@ import { EV } from '../core/events.js';
 import { angleDelta, wrapAngle, clamp01 } from '../core/math.js';
 import { TUNE, SURFACES } from './tune.js';
 import { playerItemContacts, nearestGobbleable } from './gobble.js';
+import { hypot } from './util.js';
 
 export function topSpeedFor(size, speedStat = 1) {
   return TUNE.speedK * Math.pow(size, TUNE.speedExp) * speedStat;
@@ -70,7 +71,7 @@ export function stepPlayer(S, inp, dt) {
 
   // ---- input ----
   let mx = inp.mx || 0, mz = inp.mz || 0;
-  let mag = Math.hypot(mx, mz);
+  let mag = hypot(mx, mz);
   if (mag > 1) { mx /= mag; mz /= mag; mag = 1; }
   if (mag < 0.08) mag = 0;
   const control = playing && p.stagger <= 0.2 && !M.lockMove && !p.playBow;
@@ -147,7 +148,7 @@ export function stepPlayer(S, inp, dt) {
   let nx = p.x + (p.vx + H.pushX) * dt, nz = p.z + (p.vz + H.pushZ) * dt;
   if (p.grounded && !swimming) {
     const h1 = T.heightAt(nx, nz);
-    const run = Math.hypot(nx - p.x, nz - p.z);
+    const run = hypot(nx - p.x, nz - p.z);
     if (run > 1e-7 && (h1 - tY0) / run > TUNE.maxSlope && h1 > p.y + D.stepUp * 0.25) {
       nx = p.x; nz = p.z; R.moveSpeed *= 0.5; R.blockedT += dt;
     }
@@ -188,7 +189,7 @@ export function stepPlayer(S, inp, dt) {
     const sy = wl - D.height * (sp.floats ? 0.3 : 0.5);
     if (sy > ground) { ground = sy; swimNow = true; }
   }
-  const hs = Math.hypot(p.vx, p.vz);
+  const hs = hypot(p.vx, p.vz);
   let ny = p.y + p.vy * dt;
   const wasGrounded = p.grounded;
   if (p.grounded) {
@@ -222,7 +223,7 @@ export function stepPlayer(S, inp, dt) {
     // non-swimmers get nudged back to the shallows
     T.uphill(p.x, p.z, Math.max(0.5, size), up);
     const push = top * 1.6 * clamp01((depth - D.height * 0.45) / D.height + 0.3);
-    p.vx += up.x * push * dt * 6; p.vz += up.z * push * dt * 6;
+    p.x += up.x * push * dt; p.z += up.z * push * dt;
   }
   if (inWater && !R.wasInWater && (hs > 0.25 * top || R.airT > 0)) S.emit({ type: EV.SPLASH, x: p.x, z: p.z, size: p.size });
   if (inWater) { R.wetT = Math.min(R.wetT + dt, 4); R.dryT = 0; }
@@ -241,7 +242,7 @@ export function stepPlayer(S, inp, dt) {
   // ---- outputs ----
   p.speed = hs;
   p.speedNorm = clamp01(hs / Math.max(1e-6, topSpeedFor(size, sp.stats.speed) * TUNE.sprintMult));
-  const moved = Math.hypot(p.x - p.px, p.z - p.pz);
+  const moved = hypot(p.x - p.px, p.z - p.pz);
   R.distance += moved;
   if (hs < 0.06 * size && mag === 0 && p.grounded) R.stillT += dt; else R.stillT = 0;
 
@@ -297,7 +298,7 @@ function sprayItems(S) {
   for (let j = 0; j < n; j++) {
     const i = S.scratchIdx[j];
     const dx = p.x - I.x[i], dz = p.z - I.z[i];
-    const d = Math.hypot(dx, dz) || 1;
+    const d = hypot(dx, dz) || 1;
     const v = Math.min(d * 2.2, p.size * 8 + 1);
     S.items.knock(i, (dx / d) * v, v * 0.5, (dz / d) * v);
     S.X.grace[i] = 0;

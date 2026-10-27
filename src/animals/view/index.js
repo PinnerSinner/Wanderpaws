@@ -26,7 +26,7 @@ import { createDecal } from './decal.js';
 export { createCritterView } from './critters.js';
 
 const BUILDERS = { quadruped: buildQuadruped, hopper: buildHopper, waddler: buildWaddler, shelled: buildShelled, serpent: buildSerpent, tentacle: buildTentacle };
-const QUALITY = { low: 0.6, medium: 0.85, med: 0.85, high: 1, ultra: 1.15 };
+const QUALITY = { low: 0.5, medium: 0.7, med: 0.7, high: 0.8, ultra: 1 };
 
 // Geometry cache per species and quality: building is the slow part, and the
 // colour attribute is cloned per view so looks stay independent.
@@ -162,7 +162,7 @@ function createExtras(THREE, mats, sp, bones, skel, rig, ctx) {
     inst.instanceMatrix.needsUpdate = true;
     const body = bones[idx('body')];
     const holder = new THREE.Group();
-    holder.position.set(0, 0.15 + 0.0, -0.02);
+    holder.position.set(0, rig.plan.chest[1] + 0.165, -0.0);
     holder.add(inst);
     body.add(holder);
     parts.push({ kind: 'leds', inst, holder, m });

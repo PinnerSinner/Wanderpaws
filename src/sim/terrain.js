@@ -1,6 +1,7 @@
 // World adapter: terrain height, surfaces and water levels, with the tide formula
 // shared with render: level + amp * sin(TAU * t / period).
 import { TAU } from '../core/math.js';
+import { hypot } from './util.js';
 
 export function createTerrain(world) {
   const heightAt = typeof world.heightAt === 'function' ? world.heightAt : () => 0;
@@ -60,7 +61,7 @@ export function createTerrain(world) {
     uphill(x, z, step, out) {
       const hx = heightAt(x + step, z) - heightAt(x - step, z);
       const hz = heightAt(x, z + step) - heightAt(x, z - step);
-      const l = Math.hypot(hx, hz);
+      const l = hypot(hx, hz);
       if (l < 1e-6) { out.x = 0; out.z = 0; } else { out.x = hx / l; out.z = hz / l; }
       return out;
     },

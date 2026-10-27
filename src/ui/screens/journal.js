@@ -36,7 +36,7 @@ export function journalScreen(ctx, params) {
     const all = [...ids.map((w) => ({ id: w, label: worldName(w), pct: safe(() => J.pct(w), 0) })), { id: 'eggs', label: t('ui.journal.eggs') }];
     for (const tb of all) {
       const b = h('button', { class: 'gp-tab gp-nav' + (tb.id === tab ? ' gp-on' : ''), type: 'button', title: tb.label },
-        tb.id === 'eggs' ? icon('egg') : h('span', null, tb.id.toUpperCase()), tb.id === 'eggs' ? tb.label : null,
+        tb.id === 'eggs' ? icon('egg') : [h('span', { class: 'gp-tab-short' }, tb.id.toUpperCase()), h('span', { class: 'gp-tab-long' }, tb.label)], tb.id === 'eggs' ? tb.label : null,
         tb.pct != null ? h('span', { class: 'gp-tab-pct gp-num' }, Math.round(tb.pct) + '%') : null);
       b.addEventListener('click', () => { ctx.sound('tick'); setTab(tb.id); });
       tabs.appendChild(b);

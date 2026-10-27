@@ -117,7 +117,7 @@ export function settingsScreen(ctx, params) {
       body: h('p', { class: 'gp-p' }, t('ui.set.resetConfirm')),
       buttons: [
         { label: t('ui.set.resetNo'), variant: 'cream', sound: 'back' },
-        { label: t('ui.set.resetYes'), variant: 'coral', icon: 'close', onClick: () => { safe(() => app.profile.reset()); ctx.store.set('ui.seen', {}); ctx.toast(t('ui.set.resetDone'), { icon: 'heart' }); } },
+        { label: t('ui.set.resetYes'), variant: 'coral', icon: 'close', onClick: () => { safe(() => app.profile.reset()); ctx.store.set('uiSeen', {}); ctx.toast(t('ui.set.resetDone'), { icon: 'heart' }); } },
       ],
     });
   }

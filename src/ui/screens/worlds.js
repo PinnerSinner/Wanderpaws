@@ -9,7 +9,7 @@ import { formatSizeUI, formatClock } from '../logic.js';
 import { safe, tk, worldIds, getWorldData, worldName, worldBlurb, speciesName, itemName } from '../data.js';
 import { startRun, currentSpecies } from './flow.js';
 
-const POS = [[11, 64], [30, 32], [50, 66], [70, 33], [89, 62]];
+const POS = [[12, 62], [31, 32], [50, 64], [69, 33], [87, 60]];
 const MODES = ['story', 'chill', 'speedrun', 'zoomies'];
 
 export function worldsScreen(ctx, params) {
@@ -66,17 +66,7 @@ export function worldsScreen(ctx, params) {
     startRun(ctx, { worldId: sel, speciesId, mode });
   }
 
-  function starRules(w) {
-    const g = w?.goals || {};
-    const s3 = g.star3 || {};
-    const k = s3.kind || 'noHazards';
-    const star3 = t(`ui.star3.${k}`, { type: s3.type ? itemName(s3.type).toLowerCase() : '', count: s3.count || 30, time: formatClock(g.par || 0) });
-    return [
-      t('ui.star.goal', { size: formatSizeUI(g.goal || 0) }),
-      mode === 'chill' ? t('ui.star.stretchChill', { size: formatSizeUI(g.stretch || 0), time: formatClock(g.par || 0) }) : t('ui.star.stretch', { size: formatSizeUI(g.stretch || 0) }),
-      star3,
-    ];
-  }
+  const starRules = (w) => starRuleTexts(w, mode);
 
   function renderDetail() {
     clear(detail);
@@ -133,4 +123,16 @@ export function worldsScreen(ctx, params) {
       select(ids[i]);
     },
   };
+}
+
+export function starRuleTexts(w, mode = 'story') {
+  const g = w?.goals || {};
+  const s3 = g.star3 || {};
+  const k = s3.kind || 'noHazards';
+  const star3 = t(`ui.star3.${k}`, { type: s3.type ? itemName(s3.type).toLowerCase() : '', count: s3.count || 30, time: formatClock(g.par || 0) });
+  return [
+    t('ui.star.goal', { size: formatSizeUI(g.goal || 0) }),
+    mode === 'chill' ? t('ui.star.stretchChill', { size: formatSizeUI(g.stretch || 0), time: formatClock(g.par || 0) }) : t('ui.star.stretch', { size: formatSizeUI(g.stretch || 0) }),
+    star3,
+  ];
 }

@@ -93,6 +93,12 @@ export default {
     timerWarn: [
       'Time, as it always does, was running out.',
     ],
+    achievement: [
+      'Achievement unlocked. Someone has been busy.',
+      'And for that, {name} received a small, shiny honour.',
+      'A new achievement. The pigeon is furious.',
+      'Let it be written: {name} did a thing.',
+    ],
     'weather-parade': ['And then, out of nowhere, a parade.'],
     'weather-aurora': ['The sky put on its finest show.'],
     'weather-datastorm': ['A storm of data rolled across the Cloud.'],

@@ -84,9 +84,9 @@ export function createUI({ root, app }) {
     countUp: addCountUp,
     focusFirst,
     seen: {
-      get(k) { return !!(store.get('ui.seen', {}) || {})[k]; },
-      set(k) { const s = store.get('ui.seen', {}) || {}; s[k] = true; store.set('ui.seen', s); },
-      all() { return store.get('ui.seen', {}) || {}; },
+      get(k) { return !!(store.get('uiSeen', {}) || {})[k]; },
+      set(k) { const s = store.get('uiSeen', {}) || {}; s[k] = true; store.set('uiSeen', s); },
+      all() { return store.get('uiSeen', {}) || {}; },
     },
     reducedMotion: () => !!safe(() => settings.get('reducedMotion'), false),
     sceneTitle() { setScene('title', safe(() => app.profile.lastSpecies, 'oli')); },
@@ -99,7 +99,7 @@ export function createUI({ root, app }) {
     if (!force && key === sceneKey) { if (look) safe(() => app.renderer.setLook(look)); return; }
     sceneKey = key;
     const lk = look || safe(() => app.profile.getLook(speciesId), null);
-    safe(() => app.showScene(kind, { speciesId, look: lk }));
+    safe(() => app.showScene(kind, kind === 'showroom' ? { speciesId, look: lk, framing: 'centre' } : { speciesId, look: lk }));
   }
 
   // ------------------------------------------------------------ show
@@ -137,6 +137,7 @@ export function createUI({ root, app }) {
     cur = scr;
     screenLayer.appendChild(scr.el);
     if (scr.scene) setScene(scr.scene.kind, scr.scene.speciesId, scr.scene.look);
+    if (scr.scene?.kind === 'showroom') scr.el.dataset.lookSurface = '1';
     if (prevName !== name) ctx.sound('whoosh');
     if (rootEl.classList.contains('gp-kb')) setTimeout(() => focusFirst(), 60);
   }
@@ -178,7 +179,7 @@ export function createUI({ root, app }) {
 
   const dedupe = createActionDeduper(80);
   let lastEnterAt = -1e9, lastEscAt = -1e9;
-  function nav(action, source) {
+  function nav(action, source, info = {}) {
     const n = now();
     if (!dedupe(action, source, n)) return;
     if (!rootEl.isConnected) return;
@@ -200,12 +201,12 @@ export function createUI({ root, app }) {
     if (action === 'confirm') {
       const sc = scope();
       if (!active || !sc?.contains(active) || active === document.body) { focusFirst(); return; }
-      if (isNative(active) && (source === 'kb' || n - lastEnterAt < 150)) return; // the browser clicks it
+      if (isNative(active) && (info.native || source === 'kb' || n - lastEnterAt < 150)) return; // the browser clicks it
       active.click?.();
       return;
     }
     if (action === 'cancel') {
-      if (n - lastEscAt < 250 && app.run) return; // main.js owns Esc during runs (raw.pause)
+      if (app.run && (n - lastEscAt < 250 || (info.source === 'kb' && currentName === 'pause'))) return; // main.js owns Esc during runs (raw.pause)
       if (cur?.back) { ctx.sound('back'); cur.back(); }
       return;
     }
@@ -213,7 +214,7 @@ export function createUI({ root, app }) {
   }
 
   // input module first, keyboard listener as a fallback (deduped)
-  safe(() => app.input.onMenu?.((a) => nav(a, 'input')));
+  safe(() => app.input.onMenu?.((a, info) => nav(a, 'input', info || {})));
 
   const codeBuf = createCodeBuffer({ check: (b) => app.profile?.codes?.check?.(b) ?? null });
   const konami = createKonamiMatcher();

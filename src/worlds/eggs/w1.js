@@ -1,7 +1,7 @@
 // W1 Copacabana easter eggs: C1 to C13 (SPEC §7), plus CX extras, G8 and G9.
 // P holds the key positions from the layout (w1-copacabana.js).
 
-import { EV, egg, withLines, zoneEgg, gobbleEgg, findNpc, npcDist, findItems, near, countEvents, sayOnce, distXZ, teaTimeEgg, geraldDisguiseEgg } from './common.js';
+import { EV, say, egg, withLines, zoneEgg, gobbleEgg, findNpc, npcDist, findItems, near, countEvents, sayOnce, distXZ, teaTimeEgg, geraldDisguiseEgg } from './common.js';
 
 // Morse schedule: [[on, off], ...] in seconds plus the cycle length.
 export function morse(word, unit = 0.3) {
@@ -39,9 +39,9 @@ export function makeEggsW1(P) {
       if (ctx.isFound() || ev.type !== EV.GOBBLE || ev.itemType !== 'router' || !near(ev, P.router.x, P.router.z, 2.5)) return;
       if (morseOn(ping, ctx.state.time) || ctx.flag('C1.led')) {
         ctx.found();
-        ctx.say('narrator', 'egg.C1.line1');
+        say(ctx, 'narrator', 'egg.C1.line1');
       } else {
-        ctx.say('narrator', 'egg.C1.line2');
+        say(ctx, 'narrator', 'egg.C1.line2');
         ctx.spawnItem('router', P.router.x, P.router.z, {});
       }
     },
@@ -56,7 +56,7 @@ export function makeEggsW1(P) {
     onEvent(ev, ctx) {
       if (ev.type !== EV.GOBBLE || ev.itemType !== 'caipirinha') return;
       ctx.buff('wobble', 8);
-      if (!ctx.isFound()) { ctx.found(); ctx.say('player', 'egg.C3.line'); }
+      if (!ctx.isFound()) { ctx.found(); say(ctx, 'player', 'egg.C3.line'); }
     },
   }), ['egg.C3.line']);
 
@@ -66,7 +66,7 @@ export function makeEggsW1(P) {
       if (npcDist(ctx, 'marco') > Math.max(7, ctx.player.size * 3)) return;
       ctx.found();
       ctx.setNpcAnim('marco', 'throw');
-      ctx.say('marco', 'egg.C4.line');
+      say(ctx, 'marco', 'egg.C4.line');
     },
   }), ['egg.C4.line']);
 
@@ -85,7 +85,7 @@ export function makeEggsW1(P) {
           // the ball got gobbled: the lads have a spare after a moment
           const wait = (ctx.flag('C5.wait') || 0) + 1 / 60;
           ctx.flag('C5.wait', wait);
-          if (wait > 5) { ctx.flag('C5.wait', 0); ctx.flag('C5.idx', ctx.spawnItem('football', P.ball.x, P.ball.z, {})); ctx.say('fv1', 'egg.C5.line3'); }
+          if (wait > 5) { ctx.flag('C5.wait', 0); ctx.flag('C5.idx', ctx.spawnItem('football', P.ball.x, P.ball.z, {})); say(ctx, 'fv1', 'egg.C5.line3'); }
           return;
         }
       }
@@ -114,10 +114,10 @@ export function makeEggsW1(P) {
   function bumpCount(ctx, side) {
     const n = (ctx.flag('C5.count') || 0) + 1;
     ctx.flag('C5.count', n);
-    if (n < 3) { ctx.say('fv2', 'egg.C5.line1'); return; }
+    if (n < 3) { say(ctx, 'fv2', 'egg.C5.line1'); return; }
     ctx.found();
     for (const id of ['fv1', 'fv2', 'fv3', 'fv4']) ctx.setNpcAnim(id, 'cheer');
-    ctx.say('fv1', 'egg.C5.line2');
+    say(ctx, 'fv1', 'egg.C5.line2');
     ctx.spawnItem('football', P.net.x + side * 3, P.net.z, { golden: true });
   }
 
@@ -134,7 +134,7 @@ export function makeEggsW1(P) {
       if (ctx.species.id === 'penguin') {
         ctx.found();
         ctx.setNpcAnim('magpenguin', 'wave');
-        ctx.say('magpenguin', 'egg.C7.line1');
+        say(ctx, 'magpenguin', 'egg.C7.line1');
       } else sayOnce(ctx, 'magpenguin', 'egg.C7.line2', null, 30);
     },
   }), ['egg.C7.line1', 'egg.C7.line2']);
@@ -160,7 +160,7 @@ export function makeEggsW1(P) {
       if (!ze || distXZ(ev.x, ev.z, ze.x, ze.z) > 16) return;
       const n = (ctx.flag('C8.count') || 0) + 1;
       ctx.flag('C8.count', n);
-      if (n >= 10) { ctx.found(); ctx.say('ze', 'egg.C8.line'); }
+      if (n >= 10) { ctx.found(); say(ctx, 'ze', 'egg.C8.line'); }
     },
   }), ['egg.C8.line', 'egg.C8.call']);
 
@@ -175,7 +175,7 @@ export function makeEggsW1(P) {
       if (countEvents(ctx, 'C11.barks', ctx.state.time, 4) < 3) return;
       ctx.found();
       ctx.setNpcAnim('kev', 'point');
-      ctx.say('kev', 'egg.C11.line');
+      say(ctx, 'kev', 'egg.C11.line');
     },
   }), ['egg.C11.line']);
 
@@ -186,7 +186,7 @@ export function makeEggsW1(P) {
       ctx.found();
       ctx.flag('fireworks', true);
       ctx.emit({ type: 'fireworks', x: P.fireworks.x, z: P.fireworks.z });
-      ctx.say('narrator', 'egg.C12.line');
+      say(ctx, 'narrator', 'egg.C12.line');
     },
   }), ['egg.C12.line']);
 
@@ -207,7 +207,7 @@ export function makeEggsW1(P) {
         if (n.kind !== 'sunbather' && n.kind !== 'reader') continue;
         if (ctx.dist(n.x, n.z) > r) continue;
         ctx.found();
-        ctx.say(n.id, 'egg.CX1.line');
+        say(ctx, n.id, 'egg.CX1.line');
         return;
       }
     },
@@ -218,7 +218,7 @@ export function makeEggsW1(P) {
       if (ctx.isFound() || ev.type !== EV.GOBBLE || ev.itemType !== 'flipflop') return;
       const last = ctx.flag('CX2.last');
       ctx.flag('CX2.last', ctx.state.time);
-      if (last != null && ctx.state.time - last < 2.5) { ctx.found(); ctx.say('player', 'egg.CX2.line'); }
+      if (last != null && ctx.state.time - last < 2.5) { ctx.found(); say(ctx, 'player', 'egg.CX2.line'); }
     },
   }), ['egg.CX2.line']);
 

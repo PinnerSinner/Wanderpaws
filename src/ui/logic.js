@@ -231,15 +231,15 @@ export const KONAMI = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'rig
 
 // Feeds direction and letter tokens; returns true when the whole sequence lands.
 export function createKonamiMatcher(seq = KONAMI) {
-  let i = 0;
+  let recent = [];
   return {
     push(tok) {
-      if (tok === seq[i]) { i++; if (i === seq.length) { i = 0; return true; } return false; }
-      i = tok === seq[0] ? 1 : 0;
+      recent.push(tok);
+      if (recent.length > seq.length) recent.shift();
+      if (recent.length === seq.length && recent.every((x, i) => x === seq[i])) { recent = []; return true; }
       return false;
     },
-    reset() { i = 0; },
-    get index() { return i; },
+    reset() { recent = []; },
   };
 }
 

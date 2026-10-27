@@ -22,7 +22,7 @@ const quality = params.get('q') || 'high';
 const DEFAULT_CELLS = [
   'stand:front', 'stand:side', 'stand:threeq', 'stand:top',
   'walk:threeq', 'trot:side', 'sprint:side', 'jump:side',
-  'sit:threeq', 'shake:front', 'sig:threeq', 'idle2:threeq',
+  'sit:threeq', 'shake:front', 'sigmid:threeq', 'idle2:threeq',
 ];
 
 // --- fake player state ------------------------------------------------------
@@ -76,14 +76,15 @@ function drive(p, sc, t, sp, dt) {
       else if (u < 0.6 + dur) { p.sig.active = true; p.sig.t = u - 0.6; if (sp.signature.kind === 'bellySlide' || sp.signature.kind === 'sniffBoost') run(0.8); }
       break;
     }
-    case 'sigmid': { p.sig.active = true; p.sig.t = sp.signature.duration * 0.45; break; }
+    case 'sigmid': { p.sig.active = true; p.sig.t = sp.signature.duration * 0.45; if (sp.signature.kind === 'bellySlide' || sp.signature.kind === 'sniffBoost') run(0.8); break; }
+    case 'sigcharge': { p.sig.power = 1; break; }
     case 'excited': p.emotion = 'excited'; run(0.3); break;
     case 'scared': p.emotion = 'scared'; break;
     case 'sleepy': p.emotion = 'sleepy'; break;
     case 'stagger': p.stagger = 1; break;
     case 'idle2': p.idleAnim = 'species'; break;
     default:
-      if (['sit', 'sniff', 'scratch', 'yawn', 'look', 'shake', 'lie', 'species'].includes(sc)) p.idleAnim = sc;
+      if (['sit', 'sniff', 'scratch', 'yawn', 'look', 'shake', 'lie', 'species'].includes(sc)) p.idleAnim = (t % 3.4) < 0.25 ? null : sc;
   }
   p.speed = Math.hypot(p.vx, p.vz);
   if (sc !== 'excited' && sc !== 'scared' && sc !== 'sleepy') p.emotion = 'happy';

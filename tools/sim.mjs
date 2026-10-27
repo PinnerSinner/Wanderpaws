@@ -42,6 +42,25 @@ async function loadWorlds(forceFixtures) {
 // ---------------- bots ----------------
 function makeInput() { return { mx: 0, mz: 0, sprint: false, jump: false, jumpHeld: false, sig: false, sigHeld: false, bark: false, barkHeld: false, aimYaw: 0 }; }
 
+// Is the straight line from the player to (tx, tz) free of blocking colliders?
+function lineClear(S, x0, z0, tx, tz) {
+  const p = S.state.player, D = S.derived, C = S.col;
+  const d = Math.hypot(tx - x0, tz - z0);
+  const step = Math.max(D.radius, 0.2);
+  const n = Math.min(80, Math.ceil(d / step));
+  for (let k = 1; k < n; k++) {
+    const x = x0 + ((tx - x0) * k) / n, z = z0 + ((tz - z0) * k) / n;
+    const m = C.query(x, z, D.radius);
+    for (let j = 0; j < m; j++) {
+      const i = C.hits[j];
+      if (!C.enabled[i] || (C.pass[i] & S.passMask)) continue;
+      if (C.top[i] <= p.y + D.stepUp || C.base[i] >= p.y + D.height) continue;
+      if (C.closest(i, x, z).dist < D.radius * 0.9) return false;
+    }
+  }
+  return true;
+}
+
 function greedyBot(sim, rng) {
   const st = sim.state, S = sim._S, I = st.items;
   const inp = makeInput();
@@ -50,6 +69,7 @@ function greedyBot(sim, rng) {
   let wander = 0, wanderYaw = 0, sideSign = 1, sideT = 0;
   let lastX = st.player.x, lastZ = st.player.z, progT = 0;
   let sigHold = 0;
+  const swimmer = S.species.swims || S.species.floats;
   return function think(dt) {
     const p = st.player;
     inp.jump = false; inp.sig = false; inp.bark = false;
@@ -67,13 +87,21 @@ function greedyBot(sim, rng) {
     if (target < 0 || retarget <= 0) {
       retarget = 0.25;
       let best = -1, bestScore = -Infinity;
+      // rank, then take the best one we can see (a human looks for a way round; we try the next)
+      const cand = [];
       for (let i = 0; i < I.count; i++) {
         if (!I.gobbleable[i] || I.state[i] > 2 || banned[i] > 0) continue;
+        if (!swimmer && S.terrain.depthAt(I.x[i], I.z[i]) > S.derived.height * 0.4) continue;
         const d = Math.hypot(I.x[i] - p.x, I.z[i] - p.z);
         const s = I.size[i];
-        const score = (s * s * s) / Math.pow(d + p.size * 2, 2.2) * (I.golden[i] ? 50 : 1);
-        if (score > bestScore) { bestScore = score; best = i; }
+        cand.push([(s * s * s) / Math.pow(d + p.size * 2, 2.2) * (I.golden[i] ? 50 : 1), i]);
       }
+      cand.sort((a, b) => b[0] - a[0]);
+      for (let k = 0; k < cand.length && k < 40; k++) {
+        const i = cand[k][1];
+        if (lineClear(S, p.x, p.z, I.x[i], I.z[i])) { best = i; bestScore = cand[k][0]; break; }
+      }
+      if (best < 0 && cand.length) best = cand[0][1];
       if (best !== target) targetT = 0;
       target = best;
     }
@@ -140,6 +168,7 @@ async function runOne({ worldId, speciesId, bot, seconds, seed, mode, assist, fo
   let maxSize = p.size, stuckEvents = 0, stuckT = 0, longestStuck = 0, sumMs = 0, maxMs = 0, n = 0;
   let wx = p.x, wz = p.z, winT = 0;
   const msArr = [];
+  const traceLog = [];
   for (let i = 0; i < steps; i++) {
     const inp = think(dt);
     const t0 = performance.now();
@@ -156,6 +185,7 @@ async function runOne({ worldId, speciesId, bot, seconds, seed, mode, assist, fo
         wx = p.x; wz = p.z; winT = 0;
       }
     }
+    if (process.env.SIM_TRACE && i % 1200 === 0) traceLog.push(`[trace] t ${(i / 60).toFixed(0)} pos ${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)} size ${p.size.toFixed(2)} water ${p.inWater} wall ${sim._S.run.wallHit}`);
     if (st.phase === 'finished' && bot !== 'random') break;
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || !Number.isFinite(p.size)) { stuckEvents += 99; break; }
   }
@@ -169,7 +199,7 @@ async function runOne({ worldId, speciesId, bot, seconds, seed, mode, assist, fo
     meanMs: sumMs / Math.max(1, n), p99Ms: msArr[Math.floor(msArr.length * 0.99)] || 0, maxMs,
     items: st.items.count, npcs: st.npcs.length, birds: st.birds.count,
     warnings: sim.debug.warnings.slice(0, 5).concat(sim.debug.launchLog.map((l) => 'launch: ' + l)), eggErrors: sim.debug.eggErrors.slice(0, 5),
-    hazards: st.starProgress.hazardsTouched, phase: st.phase,
+    hazards: st.starProgress.hazardsTouched, phase: st.phase, traceLog,
   };
 }
 
@@ -218,6 +248,7 @@ if (!isMainThread) {
   });
   const order = (r) => worldIds.indexOf(r.worldId) * 1000 + speciesIds.indexOf(r.speciesId) * 2 + (r.bot === 'random' ? 1 : 0);
   results.sort((a, b) => order(a) - order(b));
+  if (process.env.SIM_TRACE) for (const r of results) { console.log(`${r.worldId}/${r.speciesId}/${r.bot}`); for (const l of r.traceLog) console.log('  ' + l); }
   if (has('--json')) { console.log(JSON.stringify(results, null, 1)); }
   const pad = (s, n) => String(s).padEnd(n);
   const fmtT = (t, timer) => (t == null ? '-' : `${t.toFixed(0)}s ${Math.round((t / timer) * 100)}%`);

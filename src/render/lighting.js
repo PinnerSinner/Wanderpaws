@@ -35,7 +35,7 @@ export function createLighting(THREE, { scene, mats, sky }) {
     top: new THREE.Color(), horizon: new THREE.Color(), bottom: new THREE.Color(), fog: new THREE.Color(),
     sun: new THREE.Color(), ambient: new THREE.Color(), ground: new THREE.Color(),
     warmSun: new THREE.Color('#ffa860'), warmSky: new THREE.Color('#ffb48a'), night: new THREE.Color('#1c2350'),
-    nightTop: new THREE.Color('#0d1236'), moon: new THREE.Color('#9fb4ff'), tmp: new THREE.Color(), white: new THREE.Color('#ffffff'),
+    nightTop: new THREE.Color('#0d1236'), moon: new THREE.Color('#9fb4ff'), tmp: new THREE.Color(), white: new THREE.Color('#ffffff'), violet: new THREE.Color('#7c74b8'),
     palSun: new THREE.Color(), palTop: new THREE.Color(), palHor: new THREE.Color(), palBot: new THREE.Color(),
     palFog: new THREE.Color(), palAmb: new THREE.Color(), palGround: new THREE.Color(), outline: new THREE.Color(),
   };
@@ -103,7 +103,7 @@ export function createLighting(THREE, { scene, mats, sky }) {
     mats.uniforms.sunColor.value.copy(c.sun);
     mats.uniforms.skyColor.value.copy(c.horizon).lerp(c.top, 0.35);
     mats.uniforms.rimColor.value.copy(c.sun).lerp(c.warmSun, 0.35 + S.warmth * 0.4);
-    mats.uniforms.shadowTint.value.copy(c.top).lerp(c.white, 0.35).lerp(c.tmp.set('#7c74b8'), 0.45);
+    mats.uniforms.shadowTint.value.copy(c.top).lerp(c.white, 0.35).lerp(c.violet, 0.45);
     // view-space light direction for the rim
     if (camera) {
       v.set(S.lx, S.ly, S.lz).transformDirection(camera.matrixWorldInverse);

@@ -5,7 +5,7 @@ import { icon } from '../icons.js';
 import { btn, topBar, portraitEl, biccieChip, statBarsEl } from '../kit.js';
 import { t } from '../../core/copy/index.js';
 import { unlockHintFor } from '../logic.js';
-import { safe, tk, speciesName, worldName } from '../data.js';
+import { safe, tk, speciesName, worldName, prettyId } from '../data.js';
 import { startRun } from './flow.js';
 
 export function unlockText(app, sp) {
@@ -78,14 +78,14 @@ export function animalsScreen(ctx, params) {
     clear(detail);
     const body = h('div', { class: 'gp-scroll gp-col' });
     body.appendChild(h('div', { class: 'gp-col', style: { gap: 'calc(0.5 * var(--u))' } },
-      h('span', { class: 'gp-eyebrow' }, open ? speciesName(id) : t('ui.locked')),
+      (open && safe(() => app.profile.getName(id), '') === speciesName(id)) ? null : h('span', { class: 'gp-eyebrow' }, open ? speciesName(id) : t('ui.locked')),
       h('h2', { class: 'gp-h2' }, open ? safe(() => app.profile.getName(id), speciesName(id)) : t('ui.unknown')),
       open ? h('p', { class: 'gp-p gp-muted' }, tk(sp.blurbKey, '')) : null));
     if (!open) body.appendChild(h('div', { class: 'gp-lock-note' }, icon('lock'), h('div', null, h('div', { class: 'gp-small', style: { color: '#ffe9c9' } }, t('ui.animals.howUnlock')), unlockText(app, sp))));
     body.appendChild(h('div', { class: 'gp-sig-card' }, h('span', { class: 'gp-sig-ico' }, icon('bolt')),
       h('div', { class: 'gp-col', style: { gap: 'calc(0.4 * var(--u))' } },
         h('span', { class: 'gp-small' }, t('ui.animals.signature')),
-        h('b', { class: 'gp-h3' }, tk(sp.signature?.nameKey, sp.signature?.kind || '')),
+        h('b', { class: 'gp-h3' }, tk(sp.signature?.nameKey, prettyId(sp.signature?.kind || ''))),
         h('span', { class: 'gp-small', style: { color: 'var(--ink)' } }, tk(sp.signature?.descKey, '')))));
     body.appendChild(h('span', { class: 'gp-label' }, t('ui.animals.stats')));
     body.appendChild(statBarsEl(sp));

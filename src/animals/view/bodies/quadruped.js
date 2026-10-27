@@ -6,13 +6,13 @@ import { makeParts } from '../parts.js';
 
 const STYLES = {
   oli: {
-    torso: { hipR: 0.165, waistR: 0.15, chestR: 0.185, chestRy: 0.2, back: 0.0, len: [0.19, 0.17] },
-    head: { sx: 1.06, sy: 0.98, sz: 1.0 },
-    muzzle: { y: -0.045, z: 0.13, rx: 0.088, ry: 0.07, rz: 0.1, region: 'belly' },
-    nose: { r: 0.042, y: -0.012, z: 0.225, sx: 1.25, sy: 0.85 },
+    torso: { hipR: 0.17, waistR: 0.16, chestR: 0.19, chestRy: 0.2, back: 0.0, len: [0.19, 0.16] },
+    head: { sx: 1.06, sy: 0.97, sz: 1.0 },
+    muzzle: { y: -0.05, z: 0.15, rx: 0.095, ry: 0.072, rz: 0.11, region: 'belly' },
+    nose: { r: 0.037, y: -0.0, z: 0.255, sx: 1.3, sy: 0.82 },
     eye: { outward: 0.32, up: 0.05, irisFrac: 0.78, pupilFrac: 0.6 },
     brow: true, cheeks: 0.28,
-    legs: { fu: [0.058, 0.05], fl: [0.047, 0.043], hu: [0.07, 0.05], hl: [0.046, 0.042], paw: [0.052, 0.034, 0.066], haunch: 0.105 },
+    legs: { fu: [0.062, 0.054], fl: [0.051, 0.047], hu: [0.075, 0.054], hl: [0.05, 0.046], paw: [0.056, 0.036, 0.068], haunch: 0.11 },
     ear: 'floppy', tail: 'otter',
   },
   cat: {
@@ -148,8 +148,8 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
     g.translate(0, m.y, m.z);
     B.add(g, { bone: 'head', tag: 'muzzle', region: (l, w, n) => (m.region === 'belly' ? ['base', 'belly', ss(0.0, 0.5, n.z) * 0.6 + ss(0.3, -0.5, n.y) * 0.4 + 0.3] : m.region) });
     // mouth interior, a dark wedge you see when the jaw opens
-    const mi = S.ellipsoid(m.rx * 0.75, m.ry * 0.4, m.rz * 0.85, seg(10), seg(6));
-    mi.translate(0, m.y - m.ry * 0.55, m.z - 0.005);
+    const mi = S.ellipsoid(m.rx * 0.7, m.ry * 0.38, m.rz * 0.72, seg(10), seg(6));
+    mi.translate(0, m.y - m.ry * 0.5, m.z - m.rz * 0.15);
     B.add(mi, { bone: 'head', tag: 'face', region: 'mouth', pattern: false });
     // lower jaw on the jaw bone
     const jw = wp('jaw');
@@ -221,21 +221,21 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
     const up = front ? L.fu : L.hu, lo = front ? L.fl : L.hl;
     const parent = front ? 'chest' : 'hips';
     // upper: blend into the body at the top
-    const ug = S.limb([j.x, j.y + up[0] * 0.6, j.z].map((v, i) => v - [j.x, j.y, j.z][i]), [0, kn.y - j.y, kn.z - j.z], up[0], up[1], seg(10), 4);
+    const ug = S.limb([j.x, j.y + up[0] * 0.6, j.z].map((v, i) => v - [j.x, j.y, j.z][i]), [0, kn.y - j.y, kn.z - j.z], up[0], up[1], seg(8), 3);
     B.add(ug, {
       bone: `leg${k}`, tag: 'leg', region: legReg,
       weights: (w) => { const t = ss(j.y + 0.02, j.y - 0.07, w.y); return [X.idx(parent), 1 - t, X.idx(`leg${k}`), t]; },
     });
     // haunch / shoulder blob for chunky toy limbs
-    const hb = S.ellipsoid(L.haunch * (front ? 0.72 : 0.62), L.haunch * (front ? 0.95 : 1.0), L.haunch * (front ? 0.8 : 1.05), seg(12), seg(10));
+    const hb = S.ellipsoid(L.haunch * (front ? 0.72 : 0.62), L.haunch * (front ? 0.95 : 1.0), L.haunch * (front ? 0.8 : 1.05), seg(10), seg(8));
     hb.translate(j.x * 1.05 - (front ? chest.x : hips.x), j.y - (front ? chest.y : hips.y) - 0.005, j.z - (front ? chest.z : hips.z) + (front ? 0 : -0.01));
     B.add(hb, { bone: parent, tag: 'body', region: (l, w, n) => (n.y < -0.3 ? ['base', 'belly', 0.5] : (legReg === 'base' ? 'base' : ['base', legReg, ss(0.0, -0.4, n.y)])) });
     // lower
-    const lg = S.limb([0, 0, 0], [0, ft.y - kn.y, ft.z - kn.z], lo[0], lo[1], seg(10), 3);
+    const lg = S.limb([0, 0, 0], [0, ft.y - kn.y, ft.z - kn.z], lo[0], lo[1], seg(8), 2);
     B.add(lg, { bone: `knee${k}`, tag: 'leg', region: legReg });
     // paw
     const p = L.paw;
-    const pg = S.blob(1, seg(14), seg(10), (v, d) => { v.set(d.x * p[0], d.y * p[1] * (d.y < 0 ? 0.6 : 1), d.z * p[2]); });
+    const pg = S.blob(1, seg(12), seg(8), (v, d) => { v.set(d.x * p[0], d.y * p[1] * (d.y < 0 ? 0.6 : 1), d.z * p[2]); });
     pg.translate(0, -p[1] * 0.35, p[2] * 0.3);
     B.add(pg, { bone: `foot${k}`, tag: 'paw', region: legReg });
     if (L.toenails) for (let t = -1; t <= 1; t++) {
@@ -245,7 +245,7 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
     } else {
       // toe beans: three little bumps on the front of each paw
       for (let t = -1; t <= 1; t++) {
-        const tb = S.ellipsoid(p[0] * 0.33, p[1] * 0.42, p[0] * 0.33, 8, 6);
+        const tb = S.ellipsoid(p[0] * 0.33, p[1] * 0.42, p[0] * 0.33, 6, 4);
         tb.translate(t * p[0] * 0.55, -p[1] * 0.38, p[2] * 0.3 + p[2] * 0.82);
         B.add(tb, { bone: `foot${k}`, tag: 'paw', region: legReg });
       }
@@ -330,8 +330,9 @@ function buildEars(THREE, S, B, X, plan, st, hr) {
       // a soft rounded flap, wider at the bottom, thin, facing outward
       const g = S.blob(1, seg(14), seg(12), (v, d) => {
         const yy = d.y; // -1 bottom (tip) .. +1 top (root) before orienting: we orient +Y along dir, so flip
-        const width = 0.068 * (0.75 + 0.35 * (1 - (yy + 1) / 2));
-        v.set(d.z * 0.02 + d.x * 0.0, d.y * len * 0.55, d.x * width);
+        const tt = (1 - yy) / 2; // 0 at the root, 1 at the tip
+        const width = 0.085 * (0.7 + 0.45 * Math.sin(Math.min(1, tt * 1.15) * Math.PI * 0.75));
+        v.set(d.z * 0.022 + 0.012 * (1 - d.y * d.y), d.y * len * 0.56, -d.x * width);
         v.x += Math.abs(d.x) * 0.0;
       });
       // the blob's local Z is the flap width; orient so the flat face points outward (local X)
@@ -371,10 +372,10 @@ function buildEars(THREE, S, B, X, plan, st, hr) {
     } else if (kind === 'elephant') {
       const g = S.blob(1, seg(16), seg(12), (v, d) => {
         // a big flat fan, lobed at the bottom, along dir (the chain points sideways)
-        v.set(d.z * 0.022, d.y * len * 0.62, d.x * 0.2 * (1 + 0.15 * Math.max(0, -d.y)));
+        v.set(d.z * 0.024, d.y * len * 0.6, -d.x * 0.17 * (1 + 0.2 * Math.max(0, -d.y)));
       });
       place(g, 0.45, 0);
-      B.add(g, { bone: 'root', tag: 'ear', weights, region: (l, w, nn) => (nn.z > 0.45 ? ['base', 'inner', 0.55] : 'base') });
+      B.add(g, { bone: 'root', tag: 'ear', weights, region: (l, w, nn) => (nn.x * m < -0.45 ? ['base', 'inner', 0.55] : 'base') });
     }
   }
 }

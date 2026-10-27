@@ -61,11 +61,11 @@ export function paintPattern(arr, info, look, ctx, pc) {
         const w = noise3(x * 6, y * 6, z * 6, seed) * 0.5;
         if (tag === tLeg || tag === tTail || tag === tArm) {
           const v = Math.sin((y + z * 0.3) * 60 + w * 3 + uu[i] * 20);
-          m = ss(0.55 - amt * 0.5, 0.75 - amt * 0.5, v);
+          m = ss(0.8 - amt * 0.5, 0.9 - amt * 0.5, v);
         } else {
           const v = Math.sin(z * 34 + w * 4 + x * x * 20);
           const dorsal = ss(-0.35, 0.25, ny);
-          m = ss(0.5 - amt * 0.6, 0.7 - amt * 0.6, v) * dorsal;
+          m = ss(0.78 - amt * 0.6, 0.9 - amt * 0.6, v) * dorsal;
           if (tag === tHead || tag === tFace) m *= ss(eyeY - 0.02, eyeY + 0.05, y) * 0.9;
         }
         break;

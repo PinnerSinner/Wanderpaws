@@ -6,6 +6,7 @@ import { TAU, clamp01 } from '../core/math.js';
 import { bump, dropItems } from './gobble.js';
 import { compileRegion, inRegion, normPath } from './util.js';
 import { spawnProjectile } from './npcs.js';
+import { hypot } from './util.js';
 
 export const HAZARD_KINDS = ['tide', 'cyclist', 'pigeons', 'puddle', 'hose', 'jogger', 'slipperyRock', 'toucan', 'marmoset', 'thinIce', 'snowballKids', 'highlandCow', 'firewall', 'lagZone', 'packetLoss'];
 
@@ -34,6 +35,7 @@ export function createHazards(S) {
       kind, def: d, region: compileRegion(d.region || d, d.r || 3),
       touchCd: 0, nearCd: 0, inside: false, near: false, t: rng.range(0, 5), level: 0, calm: 0,
       npcs: [], colliders: [], state: 0, timer: rng.range(3, 8), angle: +d.yaw || 0, active: true,
+      sx: 0, sy: 0, sz: 0, tx: 0, tz: 0, u: 0, grace: 0,
     };
     const P = { kind, x: h.region.x, z: h.region.z, r: h.region.r, active: true, calm: 0, t: 0, level: 0, yaw: h.angle, npc: null };
     if (kind === 'cyclist' || kind === 'jogger') {
@@ -45,6 +47,7 @@ export function createHazards(S) {
       const mesh = kind === 'highlandCow' ? 'highlandcow' : kind;
       const n = S.npcs.add({ id: d.id || `${kind}${i}`, mesh, human: false, x: d.x || 0, z: d.z || 0, yaw: d.yaw || 0, behaviour: 'idle' });
       n.hazard = i; h.npcs.push(n); P.npc = n.id;
+      if (kind === 'marmoset') h.timer = 1;
       n.perches = normPath(d.perches) || null;
       if (kind === 'highlandCow') n.radius = +(d.r || 1.1);
     } else if (kind === 'snowballKids') {
@@ -93,12 +96,13 @@ export function stepHazards(S, dt) {
   const st = S.state, p = st.player, M = S.sigMods, H = S.hazMods, D = S.derived;
   const assistK = S.assist ? 0.5 : 1;
   const P = S.npcs.P;
+  if (st.phase === 'intro') return;
   for (let i = 0; i < Hz.list.length; i++) {
     const h = Hz.list[i], pb = Hz.pub[i], d = h.def, g = h.region;
     h.t += dt; if (h.touchCd > 0) h.touchCd -= dt; if (h.nearCd > 0) h.nearCd -= dt;
     // position for moving ones
     if (h.npcs.length) { pb.x = h.npcs[0].x; pb.z = h.npcs[0].z; }
-    h.calm = M.calmR > 0 && Math.hypot(pb.x - M.calmX, pb.z - M.calmZ) < M.calmR + pb.r ? 1 : Math.max(0, h.calm - dt * 0.5);
+    h.calm = M.calmR > 0 && hypot(pb.x - M.calmX, pb.z - M.calmZ) < M.calmR + pb.r ? 1 : Math.max(0, h.calm - dt * 0.5);
     pb.calm = h.calm; pb.t = h.t;
     const calm = h.calm > 0;
     switch (h.kind) {
@@ -180,8 +184,8 @@ export function stepHazards(S, dt) {
       }
       case 'snowballKids': {
         const range = +(d.range || 14) + p.size * 2;
-        for (const n of h.npcs) {
-          const dx = p.x - n.x, dz = p.z - n.z, dd = Math.hypot(dx, dz);
+        for (let q = 0; q < h.npcs.length; q++) { const n = h.npcs[q];
+          const dx = p.x - n.x, dz = p.z - n.z, dd = hypot(dx, dz);
           n.yaw = Math.atan2(dx, dz);
           if (calm) { n.anim = 'sit'; continue; }
           n.throwT -= dt * assistK;
@@ -205,7 +209,7 @@ export function stepHazards(S, dt) {
         for (let k = 0; k < P.count; k++) {
           if (P.kind[k] !== 2 || P.owner[k] !== i) continue;
           const dx = P.x[k] - p.x, dy = P.y[k] - (p.y + D.height * 0.5), dz = P.z[k] - p.z;
-          const dd = Math.hypot(dx, dy, dz);
+          const dd = hypot(dx, dy, dz);
           if (dd < D.radius + Math.max(0.25, D.height * 0.5)) { touchHazard(S, i, P.x[k], P.z[k], 0.5); P.kind[k] = 0; }
           else nearMiss(S, h, dd < D.radius + 1.2);
         }
@@ -214,13 +218,13 @@ export function stepHazards(S, dt) {
       case 'highlandCow': {
         const n = h.npcs[0];
         n.solid = !calm || true;
-        if (S.run.barked && Math.hypot(p.x - n.x, p.z - n.z) < 6 + p.size * 3 && h.state === 0) {
+        if (S.run.barked && hypot(p.x - n.x, p.z - n.z) < 6 + p.size * 3 && h.state === 0) {
           h.state = 1; const a = Math.atan2(n.x - p.x, n.z - p.z) + (Hz.rng.chance(0.5) ? 1.2 : -1.2);
           n.tx = n.x + Math.sin(a) * 4; n.tz = n.z + Math.cos(a) * 4; h.timer = 4;
         }
         if (h.state === 1) {
           h.timer -= dt;
-          const dx = n.tx - n.x, dz = n.tz - n.z, dd = Math.hypot(dx, dz);
+          const dx = n.tx - n.x, dz = n.tz - n.z, dd = hypot(dx, dz);
           if (dd > 0.05) { const s = Math.min(dd, 0.9 * dt); n.x += dx / dd * s; n.z += dz / dd * s; n.yaw = Math.atan2(dx, dz); n.anim = 'walk'; n.speed = 0.9; }
           if (dd <= 0.05 || h.timer <= 0) { h.state = 0; n.anim = 'idle'; n.speed = 0; }
         } else {
@@ -229,7 +233,7 @@ export function stepHazards(S, dt) {
         }
         n.y = S.terrain.heightAt(n.x, n.z);
         // bumping into the cow at speed: a gentle, stubborn shove
-        const dx = p.x - n.x, dz = p.z - n.z, dd = Math.hypot(dx, dz);
+        const dx = p.x - n.x, dz = p.z - n.z, dd = hypot(dx, dz);
         if (dd < D.radius + n.radius + 0.05 && n.height > D.stepUp) {
           const into = -(p.vx * dx + p.vz * dz) / (dd || 1);
           if (into > D.top * 0.35) touchHazard(S, i, n.x, n.z, 0.4);
@@ -269,7 +273,7 @@ function contactNpc(S, h, i, n, strength) {
   const p = S.state.player, D = S.derived;
   if (D.stepUp > n.height * 1.1) { h.near = false; return; } // you're a giant now: they ride between your paws
   const dx = p.x - n.x, dz = p.z - n.z;
-  const dd = Math.hypot(dx, dz);
+  const dd = hypot(dx, dz);
   if (dd < D.radius + n.radius + 0.1 && p.y < n.y + n.height) touchHazard(S, i, n.x, n.z, strength);
   else nearMiss(S, h, dd < D.radius + n.radius + 1.4);
 }
@@ -278,7 +282,7 @@ function movePath(S, n, spd, dt) {
   const Pth = n.path; if (!Pth) return;
   const np = Pth.length / 2;
   const tx = Pth[n.pathIdx * 2], tz = Pth[n.pathIdx * 2 + 1];
-  const dx = tx - n.x, dz = tz - n.z, d = Math.hypot(dx, dz);
+  const dx = tx - n.x, dz = tz - n.z, d = hypot(dx, dz);
   if (d < 0.05) {
     if (n.params.pingPong) { if (n.pathIdx + n.pathDir >= np || n.pathIdx + n.pathDir < 0) n.pathDir = -n.pathDir; n.pathIdx += n.pathDir; }
     else n.pathIdx = (n.pathIdx + 1) % np;
@@ -298,7 +302,7 @@ function stepToucan(S, h, i, dt, calm) {
     n.anim = 'idle'; n.speed = 0;
     n.yaw = Math.atan2(p.x - n.x, p.z - n.z);
     h.timer -= dt * (S.assist ? 0.5 : 1);
-    const dd = Math.hypot(p.x - n.x, p.z - n.z);
+    const dd = hypot(p.x - n.x, p.z - n.z);
     if (h.timer <= 0 && !calm && dd < 12 + p.size * 3 && S.state.phase === 'play' && S.derived.stepUp < 2) {
       h.state = 1; h.sx = n.x; h.sz = n.z; h.sy = n.y; h.u = 0; h.tx = p.x; h.tz = p.z;
       S.emit({ type: EV.HAZARD, kind: 'toucanSwoop', x: n.x, z: n.z });
@@ -313,7 +317,7 @@ function stepToucan(S, h, i, dt, calm) {
     n.y = ground + 0.5 + (1 - out) * 2;
     n.anim = 'fly'; n.speed = 6;
     if (h.state === 1 && !calm) {
-      const dd = Math.hypot(p.x - n.x, p.z - n.z);
+      const dd = hypot(p.x - n.x, p.z - n.z);
       if (dd < S.derived.radius + 0.4 && n.y < p.y + S.derived.height + 0.3) touchHazard(S, i, n.x, n.z, 0.5);
       else nearMiss(S, h, dd < S.derived.radius + 1.3);
     }
@@ -329,7 +333,7 @@ function stepToucan(S, h, i, dt, calm) {
 function stepMarmoset(S, h, i, dt, calm) {
   const n = h.npcs[0], p = S.state.player, D = S.derived, flags = S.state.flags;
   const g = h.region;
-  const dx = p.x - n.x, dz = p.z - n.z, dd = Math.hypot(dx, dz);
+  const dx = p.x - n.x, dz = p.z - n.z, dd = hypot(dx, dz);
   n.y = S.terrain.heightAt(n.x, n.z);
   if (h.timer > 0) h.timer -= dt;
   if (calm) { n.anim = 'sit'; n.speed = 0; }
@@ -340,6 +344,7 @@ function stepMarmoset(S, h, i, dt, calm) {
       n.x += dx / (dd || 1) * s; n.z += dz / (dd || 1) * s; n.yaw = Math.atan2(dx, dz); n.anim = 'run'; n.speed = 4;
       if (dd < D.radius + 0.3) {
         flags.hatStolen = true;
+        h.grace = 1.2;
         S.state.starProgress.hazardsTouched++; S.run.hazardsTouched++;
         S.emit({ type: EV.HAZARD, kind: 'marmoset', stolen: true, x: n.x, z: n.z });
       }
@@ -349,13 +354,14 @@ function stepMarmoset(S, h, i, dt, calm) {
     const fleeSp = Math.max(1.5, D.top * 0.85) * (S.assist ? 0.6 : 1);
     if (dd < 8 + p.size * 3) {
       let fx = -dx / (dd || 1), fz = -dz / (dd || 1);
-      const hx = g.x - n.x, hz = g.z - n.z, hd = Math.hypot(hx, hz);
-      if (hd > g.r * 3) { fx += hx / hd * 1.5; fz += hz / hd * 1.5; const l = Math.hypot(fx, fz) || 1; fx /= l; fz /= l; }
+      const hx = g.x - n.x, hz = g.z - n.z, hd = hypot(hx, hz);
+      if (hd > g.r * 3) { fx += hx / hd * 1.5; fz += hz / hd * 1.5; const l = hypot(fx, fz) || 1; fx /= l; fz /= l; }
       n.x += fx * fleeSp * dt; n.z += fz * fleeSp * dt; n.yaw = Math.atan2(fx, fz); n.anim = 'run'; n.speed = fleeSp;
       const b = S.terrain.bounds;
       n.x = Math.max(b.minX, Math.min(b.maxX, n.x)); n.z = Math.max(b.minZ, Math.min(b.maxZ, n.z));
     } else { n.anim = 'idle'; n.speed = 0; }
-    if (dd < D.radius + 0.45) {
+    if (h.grace > 0) h.grace -= dt;
+    else if (dd < D.radius + 0.45) {
       flags.hatStolen = false;
       h.timer = 30;
       S.run.biccies += 5;

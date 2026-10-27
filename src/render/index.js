@@ -462,6 +462,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     blobMat.uniforms.uAlpha.value = 0.22;
   }
 
+  const itemOpts = { lodPx: 10, shapeCodes: false, camX: 0, camY: 0, camZ: 0, pxPerRad: 600, cullPx: 1.5, far: 1e6 };
   const levelOut = { tod: 0.45, size: 1, fogScale: 1, weatherFog: 0 };
   function updateLevel(state, alpha, dt, vdt, reduced) {
     const world = level.world;
@@ -478,7 +479,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     try { hero.view.update(pv, dt); } catch (e) { /* tolerate */ }
 
     const groundY = level.heightAt ? safeH(level.heightAt, pv.x, pv.z, pv.y) : pv.y;
-    heroBlob.position.set(pv.x, Math.min(pv.y, groundY + ds) * 0 + groundY + 0.004 + ds * 0.005, pv.z);
+    heroBlob.position.set(pv.x, groundY + 0.004 + ds * 0.005, pv.z);
     const air = Math.max(0, pv.y - groundY);
     heroBlob.scale.setScalar(ds * (1.0 - Math.min(0.5, air / ds * 0.4)));
     heroBlob.visible = !p.inWater;
@@ -514,9 +515,14 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
 
     // world
     try { level.scenery.update?.(vdt, state); } catch (e) { /* tolerate */ }
-    level.items.sync(state.items, alpha, vdt, pPose, time, { shapeCodes: !!S('shapeCodes', false) });
     camera.updateMatrixWorld();
     const pxPerRad = viewH / (2 * Math.tan((camera.fov * Math.PI) / 360));
+    itemOpts.shapeCodes = !!S('shapeCodes', false);
+    itemOpts.camX = camera.position.x; itemOpts.camY = camera.position.y; itemOpts.camZ = camera.position.z;
+    itemOpts.pxPerRad = pxPerRad; itemOpts.cullPx = tier.id === 'low' ? 2.5 : tier.id === 'medium' ? 1.6 : 1;
+    itemOpts.far = lighting.fog.far * 1.05;
+    itemOpts.lodPx = tier.id === 'low' ? 16 : tier.id === 'medium' ? 11 : 7;
+    level.items.sync(state.items, alpha, vdt, pPose, time, itemOpts);
     level.npcs.sync(state.npcs, alpha, dt, camera, pxPerRad, tier.npcCullPx);
     birds.sync(state.birds, alpha, 1);
     if (level.ghost) level.ghost.update(state.tick || 0, alpha, dt, null);

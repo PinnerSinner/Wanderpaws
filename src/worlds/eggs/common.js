@@ -72,12 +72,17 @@ export function sayOnce(ctx, speaker, key, vars, cooldown = 6) {
   const now = ctx.state.time;
   if (last != null && now - last < cooldown) return false;
   ctx.flag(fk, now);
-  ctx.say(speaker, key, vars);
+  say(ctx, speaker, key, vars);
   return true;
 }
 
 export function playerName(ctx) {
   return (ctx.state && ctx.state.playerName) || 'Oli';
+}
+
+// Every egg line gets {name} (the player's animal's name) for free.
+export function say(ctx, speaker, key, vars) {
+  ctx.say(speaker, key, vars ? { name: playerName(ctx), ...vars } : { name: playerName(ctx) });
 }
 
 // ---- factories for the common shapes --------------------------------------
@@ -90,7 +95,7 @@ export function zoneEgg(id, world, { zone, secs = 2, speaker = 'narrator', line,
       if (cond && !cond(ctx)) return;
       if (!stillInZone(ctx, zone, secs)) return;
       ctx.found();
-      if (line) ctx.say(speaker, line, typeof vars === 'function' ? vars(ctx) : vars);
+      if (line) say(ctx, speaker, line, typeof vars === 'function' ? vars(ctx) : vars);
       if (buff) ctx.buff(buff[0], buff[1]);
       if (after) after(ctx);
     },
@@ -106,7 +111,7 @@ export function gobbleEgg(id, world, { type, x, z, r, speaker = 'narrator', line
       if (r != null && !near(ev, x, z, r)) return;
       if (cond && !cond(ctx, ev)) return;
       ctx.found();
-      if (line) ctx.say(speaker, line);
+      if (line) say(ctx, speaker, line);
       if (after) after(ctx, ev);
     },
   });
@@ -123,7 +128,7 @@ export function npcEgg(id, world, { npc, r = 4, speaker, line, lines, anim, cond
       if (npcDist(ctx, npc) > r) return;
       ctx.found();
       if (anim) ctx.setNpcAnim(npc, anim);
-      if (line) ctx.say(speaker || npc, line);
+      if (line) say(ctx, speaker || npc, line);
       if (after) after(ctx);
     },
   });
@@ -151,8 +156,8 @@ export function teaTimeEgg(worldId, types = ['teamug']) {
       ctx.buff('tea', 6 * mult);
       const n = (ctx.flag('G8.cups') || 0) + 1;
       ctx.flag('G8.cups', n);
-      if (!ctx.isFound()) { ctx.found(); ctx.say('player', 'egg.G8.line1'); }
-      else if (n === 5) ctx.say('player', 'egg.G8.line2');
+      if (!ctx.isFound()) { ctx.found(); say(ctx, 'player', 'egg.G8.line1'); }
+      else if (n === 5) say(ctx, 'player', 'egg.G8.line2');
     },
   }), ['egg.G8.line1', 'egg.G8.line2']);
 }
@@ -166,7 +171,7 @@ export function geraldDisguiseEgg(worldId) {
       if (ctx.isFound() || ev.type !== EV.BARK) return;
       if (npcDist(ctx, 'gerald') > Math.max(7, ctx.player.size * 2.5)) return;
       ctx.found();
-      ctx.say('gerald', key);
+      say(ctx, 'gerald', key);
     },
     tick(ctx) {
       if (ctx.isFound() || (ctx.state.tick & 7) !== 0) return;
@@ -174,7 +179,7 @@ export function geraldDisguiseEgg(worldId) {
       const t = ctx.flag('G9.near') || 0;
       if (d < 3.5 * Math.max(1, ctx.player.size)) {
         ctx.flag('G9.near', t + 8 / 60);
-        if (t > 2) { ctx.found(); ctx.say('gerald', key); }
+        if (t > 2) { ctx.found(); say(ctx, 'gerald', key); }
       } else if (t) ctx.flag('G9.near', 0);
     },
   }), [key]);

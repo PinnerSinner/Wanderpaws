@@ -95,7 +95,7 @@ void main() {
     uniforms: {
       tScene: { value: null }, tBloomA: { value: null }, tBloomB: { value: null }, tRays: { value: null },
       uBloom: { value: 0.0 }, uRays: { value: 0 }, uRaysColor: { value: new THREE.Color('#ffd7a0') },
-      uExposure: { value: 1.0 }, uWarm: { value: 0 }, uSat: { value: 1.06 }, uVignette: { value: 0.22 },
+      uExposure: { value: 1.0 }, uWarm: { value: 0 }, uSat: { value: 1.12 }, uVignette: { value: 0.22 },
       uLift: { value: new THREE.Color('#2a1c3a') }, uFilter: { value: 0 }, uTime: { value: 0 }, uAspect: { value: 1 },
     },
     vertexShader: VERT,
@@ -132,6 +132,8 @@ void main() {
   c = mix( vec3( l ), c, uSat );
   c = max( c, vec3( 0.0 ) );
   c = neutralTone( c );
+  // a gentle S-curve for storybook contrast
+  c = mix( c, c * c * ( 3.0 - 2.0 * c ), 0.28 );
   c += uLift * 0.06 * ( 1.0 - smoothstep( 0.0, 0.5, l ) );
   // photo filters
   int f = int( uFilter + 0.5 );

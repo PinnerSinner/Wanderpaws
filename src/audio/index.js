@@ -213,7 +213,10 @@ export function createAudio({ settings, bus, assets } = {}) {
     m.peak = Math.max(pk, m.peak * Math.exp(-dt / 3));
     const L = -0.691 + powerToDb(ms);
     m.short += (ms - m.short) * Math.min(1, dt / 0.4);
-    if (L > -70) {                         // gated running average over ~10 s of activity
+    // gated running average over ~10 s of activity. The -50 gate matches the
+    // offline activeLoudness() the mix was designed with, so the gaps between
+    // syllables don't drag the voice figure down.
+    if (L > -50) {
       const a = Math.min(1, dt / 10);
       m.avg = m.avgN ? m.avg + (ms - m.avg) * a : ms;
       m.avgN++;
@@ -649,7 +652,7 @@ export function createAudio({ settings, bus, assets } = {}) {
       for (const k in N.meters) readMeter(N.meters[k], dt);
     },
     // Measured output levels (LUFS-ish: K-weighted, sum of L and R power,
-    // gated at -70 and averaged over about 10 s of activity), plus dynamics
+    // gated at -50 and averaged over about 10 s of activity), plus dynamics
     // gain reduction and the design targets for comparison.
     levels() {
       const design = designLevels(S.all ? S.all() : DEFAULT_SETTINGS, musicPlayer?.current || 'w1');

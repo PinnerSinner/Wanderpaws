@@ -31,7 +31,8 @@ fs.mkdirSync(path.dirname(html), { recursive: true });
 fs.writeFileSync(html, `<!doctype html><html><head><meta charset="utf-8"><title>Mesh preview</title></head><body><script>${res.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')}</script></body></html>`);
 
 const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
-const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
+const cols0 = Number(opts.cols || 8), cell0 = Number(opts.cell || 220);
+const page = await browser.newPage({ viewport: { width: opts.mode === 'world' ? Number(opts.w || 1600) : cols0 * cell0, height: opts.mode === 'world' ? Number(opts.h || 900) : 900 }, deviceScaleFactor: 1 });
 const errors = [];
 page.on('pageerror', (e) => errors.push('pageerror: ' + (e.stack || e.message)));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(m.type() + ': ' + m.text()); });
@@ -41,6 +42,8 @@ await page.waitForFunction(() => window.__ready === true, null, { timeout: 12000
 await page.waitForTimeout(wait);
 const size = await page.evaluate(() => [document.body.scrollWidth, document.body.scrollHeight, window.__stats || null]);
 await page.setViewportSize({ width: Math.max(200, size[0]), height: Math.max(200, size[1]) });
+await page.waitForTimeout(150);
+await page.evaluate(() => window.__rerender && window.__rerender(0)).catch(() => {});
 await page.waitForTimeout(100);
 fs.mkdirSync(path.dirname(out), { recursive: true });
 await page.screenshot({ path: out, fullPage: true });

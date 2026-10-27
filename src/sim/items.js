@@ -3,6 +3,7 @@
 // tumbles with damped bounces, domino knocks and a hard velocity cap.
 import { CATALOGUE } from '../worlds/catalogue.js';
 import { TUNE } from './tune.js';
+import { hypot } from './util.js';
 
 export const IS_IDLE = 0, IS_WOBBLE = 1, IS_TUMBLE = 2, IS_GOBBLING = 3, IS_GONE = 4, IS_HIDDEN = 5;
 
@@ -214,10 +215,10 @@ export function createItems(S) {
     I.state[i] = IS_TUMBLE;
     I.anim[i] = 0;
     // intentional knocks are clamped under the cap; only physics spikes count as launches
-    const s3 = Math.hypot(vx, vy, vz), c3 = vcap(i) * 0.9;
+    const s3 = hypot(vx, vy, vz), c3 = vcap(i) * 0.9;
     if (s3 > c3) { const k = c3 / s3; vx *= k; vy *= k; vz *= k; }
     X.vx[i] = vx; X.vy[i] = vy; X.vz[i] = vz;
-    const sp = Math.hypot(vx, vz);
+    const sp = hypot(vx, vz);
     if (sp > 1e-4) I.tiltAxis[i] = Math.atan2(vx, vz);
     X.spin[i] = (S.rngFx.next() - 0.5) * 8;
     X.tiltVel[i] = 2 + sp / Math.max(0.1, I.size[i]) * 0.6;
@@ -307,7 +308,7 @@ export function createItems(S) {
     X.vy[i] -= g * dt;
     let vx = X.vx[i], vy = X.vy[i], vz = X.vz[i];
     // velocity cap (and launch detection for the bots)
-    const sp = Math.hypot(vx, vy, vz);
+    const sp = hypot(vx, vy, vz);
     const cap_ = vcap(i);
     if (sp > cap_) {
       if (sp > cap_ * 1.5) { S.debug.launches++; if (S.debug.launchLog.length < 8) S.debug.launchLog.push(`${I.types[I.typeIndex[i]]} size ${I.size[i].toFixed(2)} speed ${sp.toFixed(1)} cap ${cap_.toFixed(1)} t ${S.state.time.toFixed(1)}`); }
@@ -351,7 +352,7 @@ export function createItems(S) {
     I.x[i] = x; I.y[i] = y; I.z[i] = z;
     I.rotY[i] += X.spin[i] * dt;
     // tilt rolls with the motion, then the spring takes over when settled
-    const hs = Math.hypot(vx, vz);
+    const hs = hypot(vx, vz);
     I.tilt[i] += X.tiltVel[i] * dt * (onGround ? Math.min(1, hs / (size * 2 + 0.1)) : 1);
     if (I.tilt[i] > Math.PI) I.tilt[i] -= Math.PI * 2;
     if (I.tilt[i] < -Math.PI) I.tilt[i] += Math.PI * 2;

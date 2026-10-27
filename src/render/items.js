@@ -23,7 +23,7 @@ export function createItemLayer(THREE, { mats, buildItemMesh, catalogue, setting
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), qt = new THREE.Quaternion();
   const pos = new THREE.Vector3(), scl = new THREE.Vector3(), axis = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   const tmpP = { x: 0, y: 0, z: 0 }, gs = { s: 1, sy: 1 };
-  let triangles = 0;
+  let triangles = 0, lastCulled = 0;
 
   // ---- icons (shape codes) and blob shadows: one instanced mesh each
   const ICON_MAX = 64;
@@ -111,6 +111,37 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
   blobs.renderOrder = 1;
   blobs.name = 'gp-item-blobs';
   group.add(blobs);
+  // far LOD: every distant item, of any type, as a soft low-poly lump in its
+  // type's average colour, scaled to its bounding box. One draw call in all.
+  let farCap = 256;
+  const farGeo = new THREE.IcosahedronGeometry(0.5, 1);
+  farGeo.translate(0, 0.5, 0);
+  let farFxArr = new Float32Array(farCap * 3);
+  let farFx = new THREE.InstancedBufferAttribute(farFxArr, 3);
+  farGeo.setAttribute('aFx', farFx);
+  const farMat = mats.itemFx(mats.toon('#ffffff', { rim: false }));
+  let far = makeFar(farCap);
+  function makeFar(cap) {
+    const m = new THREE.InstancedMesh(farGeo, farMat, cap);
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    m.setColorAt(0, new THREE.Color(1, 1, 1));
+    m.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    m.count = 0;
+    m.castShadow = false;
+    m.receiveShadow = true;
+    m.frustumCulled = false;
+    m.name = 'gp-item-far';
+    group.add(m);
+    return m;
+  }
+  function growFar(need) {
+    group.remove(far); far.dispose?.();
+    farCap = Math.ceil(need * 1.5);
+    farFxArr = new Float32Array(farCap * 3);
+    farFx = new THREE.InstancedBufferAttribute(farFxArr, 3);
+    farGeo.setAttribute('aFx', farFx);
+    far = makeFar(farCap);
+  }
   let blobsOn = false;
   let heightAt = null;
 
@@ -142,7 +173,15 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
     mesh.boundingSphere = new THREE.Sphere();
     group.add(mesh);
     const cat = catalogue ? catalogue[typeId] : null;
+    const bb = baked.geometry.boundingBox;
+    const cA = baked.geometry.getAttribute('color');
+    let cr = 0, cg = 0, cb = 0;
+    for (let k = 0; k < cA.count; k++) { cr += cA.getX(k); cg += cA.getY(k); cb += cA.getZ(k); }
+    const nk = Math.max(1, cA.count);
     const layer = {
+      avg: new THREE.Color(cr / nk, cg / nk, cb / nk),
+      bx: bb.max.x - bb.min.x, by: Math.max(0.02, bb.max.y - bb.min.y), bz: bb.max.z - bb.min.z,
+      ox: (bb.max.x + bb.min.x) / 2, oy: bb.min.y, oz: (bb.max.z + bb.min.z) / 2,
       mesh, fx, fxArr, cap, cursor: 0, typeId, tris: baked.triangles,
       height: cat && cat.size ? (cat.height || cat.size) / cat.size : 1,
       shape: shapeIndex(cat ? cat.shape : 'circle'),
@@ -185,8 +224,16 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
 
   function growLayer(ti, need) {
     const l = layers[ti];
-    if (l) { group.remove(l.mesh); l.mesh.geometry.dispose(); }
-    return buildLayer(ti, Math.ceil(need * 1.5) + 8);
+    const nl = buildLayer(ti, Math.ceil(need * 1.5) + 8);
+    if (l) {
+      // keep what was already written this frame
+      nl.cursor = l.cursor;
+      nl.mesh.instanceMatrix.array.set(l.mesh.instanceMatrix.array.subarray(0, l.cursor * 16));
+      nl.fxArr.set(l.fxArr.subarray(0, l.cursor * 3));
+      nl.minX = l.minX; nl.minY = l.minY; nl.minZ = l.minZ; nl.maxX = l.maxX; nl.maxY = l.maxY; nl.maxZ = l.maxZ; nl.maxS = l.maxS;
+      group.remove(l.mesh); l.mesh.geometry.dispose();
+    }
+    return nl;
   }
 
   // player: interpolated {x, y, z, yaw, size}; time: render clock
@@ -202,6 +249,12 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
     const mouthY = player.y + ps * 0.42;
     const mouthZ = player.z + Math.cos(player.yaw) * ps * 0.5;
     const iconR2 = (ps * 14 + 4) * (ps * 14 + 4);
+    // per-instance culling: skip items that would be under cullPx on screen or past the fog
+    const cx = opts.camX ?? player.x, cy = opts.camY ?? player.y, cz = opts.camZ ?? player.z;
+    const kPx = (opts.pxPerRad || 600) / Math.max(0.3, opts.cullPx || 1.5);
+    const far2 = (opts.far || 1e6) * (opts.far || 1e6);
+    let culled = 0, nFar = 0;
+    const kLod = (opts.pxPerRad || 600) / Math.max(1, opts.lodPx || 10);
 
     for (let i = 0; i < n; i++) {
       const st = it.state[i];
@@ -220,6 +273,29 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
         if (g >= 1) { if (st === 4) continue; }
       } else gT[i] = -1;
 
+      if (g < 0) {
+        const dx = it.x[i] - cx, dy = it.y[i] - cy, dz = it.z[i] - cz;
+        const d2 = dx * dx + dy * dy + dz * dz;
+        const sz = it.size[i] || 0.1;
+        if (d2 > far2 || sz * sz * kPx * kPx < d2) { culled++; continue; }
+        if (sz * sz * kLod * kLod < d2) {
+          const lt = layers[it.typeIndex[i]] || buildLayer(it.typeIndex[i], 16);
+          if (nFar >= farCap) growFar(nFar + 1);
+          const s0 = sz * (it.scale[i] || 1);
+          q.setFromAxisAngle(up, it.rotY[i]);
+          axis.set(lt.ox * s0, lt.oy * s0, lt.oz * s0).applyQuaternion(q);
+          pos.set(it.px[i] + (it.x[i] - it.px[i]) * a + axis.x, it.py[i] + (it.y[i] - it.py[i]) * a + axis.y, it.pz[i] + (it.z[i] - it.pz[i]) * a + axis.z);
+          scl.set(Math.max(0.05, lt.bx) * s0, lt.by * s0, Math.max(0.05, lt.bz) * s0);
+          m4.compose(pos, q, scl);
+          m4.toArray(far.instanceMatrix.array, nFar * 16);
+          lt.avg.toArray(far.instanceColor.array, nFar * 3);
+          farFxArr[nFar * 3] = it.almost[i] && !it.gobbleable[i] ? 1 : 0;
+          farFxArr[nFar * 3 + 1] = it.golden[i] ? 1 : 0;
+          farFxArr[nFar * 3 + 2] = 0;
+          nFar++;
+          continue;
+        }
+      }
       const ti = it.typeIndex[i];
       let l = layers[ti];
       if (!l) l = buildLayer(ti, 16);
@@ -313,6 +389,15 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
         triangles += l.tris * l.cursor;
       }
     }
+    lastCulled = culled;
+    far.count = nFar;
+    far.visible = nFar > 0;
+    if (nFar) {
+      far.instanceMatrix.clearUpdateRanges(); far.instanceMatrix.addUpdateRange(0, nFar * 16); far.instanceMatrix.needsUpdate = true;
+      far.instanceColor.clearUpdateRanges(); far.instanceColor.addUpdateRange(0, nFar * 3); far.instanceColor.needsUpdate = true;
+      farFx.clearUpdateRanges(); farFx.addUpdateRange(0, nFar * 3); farFx.needsUpdate = true;
+      triangles += nFar * 80;
+    }
     iconGeo.instanceCount = nIcons;
     icons.visible = nIcons > 0;
     if (nIcons) { iconBuf.clearUpdateRanges(); iconBuf.addUpdateRange(0, nIcons * 8); iconBuf.needsUpdate = true; }
@@ -332,11 +417,13 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
     group, setup, sync, applyColours,
     setBlobs(on) { blobsOn = !!on; if (!on) { blobGeo.instanceCount = 0; blobs.visible = false; } },
     get triangles() { return triangles; },
+    get culled() { return lastCulled; },
     get layerCount() { return layers.filter(Boolean).length; },
     dispose() {
       disposeLayers();
       iconGeo.dispose(); iq.dispose(); iconMat.dispose();
       blobGeo.dispose(); bq.dispose(); blobMat.dispose();
+      farGeo.dispose(); far.dispose?.();
     },
   };
 }
