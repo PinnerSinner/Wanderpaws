@@ -81,10 +81,12 @@ export function createHUD(ctx) {
   }
 
   function showGo(kind) {
+    if (kind === 'go' && goEl && goEl.classList.contains('gp-burst') && goTimer > 0.6) return;
     if (goEl) goEl.remove();
     if (kind === 'ready') {
       goEl = h('div', { class: 'gp-go gp-ready gp-outline' }, t('ui.hud.ready'), h('small', null, worldName(app.run?.worldId || 'w1')));
     } else if (kind === 'go') {
+      if (goEl && goEl.classList.contains('gp-burst') && goTimer > 0.6) return;
       goEl = h('div', { class: 'gp-go gp-burst' }, t('ui.hud.go'));
       goTimer = 1.15;
     } else if (kind === 'finish') {
