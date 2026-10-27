@@ -205,7 +205,7 @@ export function createUI({ root, app }) {
       return;
     }
     if (action === 'cancel') {
-      if (n - lastEscAt < 160 && (currentName === 'pause' || currentName === 'photo')) return; // main.js owns Esc in runs
+      if (n - lastEscAt < 250 && app.run) return; // main.js owns Esc during runs (raw.pause)
       if (cur?.back) { ctx.sound('back'); cur.back(); }
       return;
     }
@@ -239,9 +239,12 @@ export function createUI({ root, app }) {
   safe(() => app.input.onText?.((ch) => { if (currentName === 'title' && !modal) onCode(codeBuf.push(ch, now())); }));
   safe(() => app.input.onKonami?.(() => onKonami()));
 
-  const onKey = (e) => {
+  // capture phase: runs before the input module's own window listener
+  window.addEventListener('keydown', (e) => {
     if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') lastEnterAt = now();
     if (e.code === 'Escape') lastEscAt = now();
+  }, true);
+  const onKey = (e) => {
     if (isText(e.target) && e.code !== 'Escape' && e.code !== 'Enter') return;
     if (currentName === 'title' && !modal && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (e.key && e.key.length === 1) onCode(codeBuf.push(e.key, now()));

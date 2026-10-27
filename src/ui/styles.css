@@ -63,7 +63,7 @@
 .gp .gp-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
 
 /* ----------------------------------------------------------------- layers */
-.gp-layer { position: absolute; inset: 0; }
+.gp-layer { position: absolute; inset: 0; pointer-events: none; }
 .gp-screen {
   pointer-events: auto;
   display: flex;
