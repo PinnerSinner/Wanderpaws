@@ -1,18 +1,16 @@
-// STUB (lead): replaced by the Worlds agent.
-export function buildItemMesh(THREE, mats, typeId) {
-  const m = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 8), mats.toon('#ff7a59'));
-  m.position.y = 0.5;
-  const g = new THREE.Group(); g.add(m); return g;
-}
-export function buildScenery(THREE, mats, world) {
-  const g = new THREE.Group();
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), mats.toon(world.palette.ground));
-  ground.rotation.x = -Math.PI / 2; g.add(ground);
-  return { group: g, update() {} };
-}
-export function buildHuman(THREE, mats, kind) {
-  const g = new THREE.Group();
-  const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.25, 1, 4, 8), mats.toon('#4a7fd0'));
-  b.position.y = 0.8; g.add(b);
-  return { object3d: g, update() {} };
-}
+// World-meshes: every item, scenery piece, terrain, water body and human.
+// Render-side (imports nothing from three itself: THREE is passed in, so the
+// registries below can be checked in Node without WebGL).
+//
+// API (CONTRACTS.md §4.3):
+//   buildItemMesh(THREE, mats, typeId)        -> Object3D, normalised (see items/index.js)
+//   buildSceneryMesh(THREE, mats, id, params) -> Object3D at real-metre dims
+//   buildScenery(THREE, mats, world)          -> { group, update(dt, simState), dispose() }
+//   buildHuman(THREE, mats, kind, opts?)      -> { object3d, update(npc, dt), dispose() }
+//
+// Registries (for tests and tools): ITEM_BUILDERS, SCENERY_BUILDERS, HUMAN_KINDS.
+
+export { buildItemMesh, ITEM_BUILDERS, normaliseItem, buildItemBuilder } from './items/index.js';
+export { buildSceneryMesh, SCENERY_BUILDERS } from './scenery/index.js';
+export { buildScenery } from './world.js';
+export { buildHuman, HUMAN_KINDS, HUMAN_DESIGNS } from './humans.js';

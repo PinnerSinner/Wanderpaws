@@ -13,7 +13,7 @@ const T = (id, size, height, worlds, o = {}) => ({
 
 function tierOf(size, worlds) {
   // relative to the world's own size range, so every world uses all the tiers
-  const ranges = { w1: [0.03, 3.6], w2: [0.04, 9], w3: [0.05, 12], w4: [0.12, 30], w5: [1.5, 200], all: [0.03, 3] };
+  const ranges = { w1: [0.03, 2.6], w2: [0.04, 7], w3: [0.05, 15], w4: [0.12, 40], w5: [0.9, 200], all: [0.03, 3] };
   const [a, b] = ranges[worlds[0]] || ranges.all;
   const t = Math.log(size / a) / Math.log(b / a);
   return Math.max(0, Math.min(5, Math.floor(t * 6)));
@@ -43,18 +43,19 @@ const list = [
   T('flipflop', 0.26, 0.03, ['w1']),
   T('sunhat', 0.38, 0.14, ['w1']),
   T('beachball', 0.45, 0.45, ['w1']),
-  T('coolbox', 0.55, 0.4, ['w1']),
-  T('lifebuoy', 0.7, 0.12, ['w1']),
+  T('coolbox', 0.55, 0.4, ['w1', 'w3']),
+  T('lifebuoy', 0.7, 0.12, ['w1', 'w3']),
   T('bollard', 0.9, 0.9, ['w1']),
   T('towel', 0.9, 0.05, ['w1']),
   T('deckchair', 1.0, 0.9, ['w1']),
   T('sandcastle', 1.2, 0.9, ['w1']),
   T('kiosktable', 1.2, 0.8, ['w1']),
-  T('bicycle', 1.7, 1.0, ['w1']),
+  T('bicycle', 1.7, 1.0, ['w1', 'w3']),
   T('parasol', 1.9, 2.1, ['w1']),
   T('surfboard', 2.1, 0.2, ['w1']),
-  T('volleynet', 3.2, 2.4, ['w1']),
-  T('kiosk', 3.6, 3.0, ['w1']),
+  // finale tier: the net and the kiosk become gobble-able just before the stretch size (4.5 m)
+  T('volleynet', 2.4, 2.4, ['w1']),
+  T('kiosk', 2.6, 2.6, ['w1']),
 
   // W2 London (0.4 m -> 8 m)
   T('conker', 0.04, 0.04, ['w2']),
@@ -63,16 +64,18 @@ const list = [
   T('crisps', 0.15, 0.04, ['w2'], { food: true }),
   T('newspaper', 0.3, 0.05, ['w2']),
   T('wellies', 0.35, 0.4, ['w2']),
+  T('flowerpot', 0.45, 0.4, ['w2']),
+  T('trafficcone', 0.5, 0.7, ['w2']),
   T('brolly', 0.9, 0.9, ['w2']),
   T('parkbin', 0.9, 1.0, ['w2']),
   T('stripedeckchair', 1.0, 0.9, ['w2']),
   T('postbox', 1.4, 1.6, ['w2']),
   T('bench', 1.6, 0.9, ['w2']),
-  T('phonebox', 2.5, 2.6, ['w2']),
+  T('phonebox', 2.5, 2.6, ['w2', 'w4']),
   T('lamppost', 3.5, 4.5, ['w2']),
   T('taxi', 4.2, 1.8, ['w2']),
-  T('doubledecker', 7.0, 4.4, ['w2']),
-  T('bandstand', 8.5, 6.0, ['w2']),
+  T('doubledecker', 6.0, 4.4, ['w2']),
+  T('bandstand', 7.0, 6.0, ['w2']),
 
   // W3 Tijuca (0.8 m -> 18 m)
   T('brazilnut', 0.05, 0.05, ['w3'], { food: true }),
@@ -82,6 +85,8 @@ const list = [
   T('bananas', 0.25, 0.2, ['w3'], { food: true }),
   T('hikingboot', 0.3, 0.25, ['w3']),
   T('bromeliad', 0.4, 0.4, ['w3']),
+  T('jackfruit', 0.45, 0.4, ['w3'], { food: true }),
+  T('rucksack', 0.6, 0.55, ['w3']),
   T('lilyflower', 0.3, 0.15, ['w3']),
   T('paddle', 1.6, 0.1, ['w3']),
   T('treestump', 1.5, 0.8, ['w3']),
@@ -90,12 +95,12 @@ const list = [
   T('hammock', 2.2, 1.2, ['w3']),
   T('tent', 2.5, 1.6, ['w3']),
   T('kayak', 3.2, 0.5, ['w3']),
-  T('boulder', 3.5, 2.5, ['w3']),
+  T('boulder', 3.5, 2.5, ['w3', 'w4']),
   T('jeep', 4.2, 2.0, ['w3']),
   T('cablecar', 5.0, 3.5, ['w3']),
   T('bridgesection', 6.0, 1.5, ['w3']),
-  T('lookouthut', 9.0, 6.0, ['w3']),
-  T('palmtree', 11.0, 12.0, ['w3']),
+  T('lookouthut', 12.0, 7.0, ['w3']),
+  T('palmtree', 15.0, 16.0, ['w3']),
 
   // W4 Highlands (1.5 m -> 45 m)
   T('shortbread', 0.12, 0.03, ['w4'], { food: true }),
@@ -118,11 +123,16 @@ const list = [
   T('bothy', 7.0, 5.0, ['w4']),
   T('pinetree', 10.0, 12.0, ['w4']),
   T('cottage', 14.0, 9.0, ['w4']),
-  T('castleturret', 20.0, 22.0, ['w4']),
+  T('lighthouse', 18.0, 22.0, ['w4']),
   T('skiliftpylon', 26.0, 24.0, ['w4']),
+  T('castleturret', 30.0, 30.0, ['w4']),
+  T('castlekeep', 40.0, 36.0, ['w4']),
 
   // W5 Marcoverse (4 m -> 300 m)
+  T('bit', 0.9, 0.9, ['w5']),
+  T('cookie', 1.2, 0.4, ['w5'], { food: true }),
   T('packet', 1.5, 1.0, ['w5']),
+  T('sdcard', 2.0, 0.2, ['w5']),
   T('rj45', 1.5, 0.8, ['w5']),
   T('usbstick', 2.5, 0.6, ['w5']),
   T('teaurn', 3.0, 3.5, ['w5'], { food: true }),
@@ -143,6 +153,7 @@ const list = [
   T('satellitedish', 50.0, 40.0, ['w5']),
   T('loaderball', 60.0, 60.0, ['w5']),
   T('dcblock', 90.0, 60.0, ['w5']),
+  T('blimp', 130.0, 50.0, ['w5']),
   T('giantcloud', 200.0, 120.0, ['w5']),
 ];
 
