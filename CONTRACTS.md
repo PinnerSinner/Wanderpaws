@@ -12,7 +12,7 @@ This is the source of truth for how the parts talk to each other. `SPEC.md` says
 - **Conventions:** metres, seconds, radians. Y is up. Forward = `(sin yaw, 0, cos yaw)`. Right = `(-cos yaw, 0, sin yaw)`.
 - **No per-frame allocations** in hot paths (sim step, animation update, particles, render frame). Preallocate and reuse.
 - **Three.js** is `three@0.186.1`: `import * as THREE from 'three'`. Only render-side code (`src/render`, `src/animals/view`, `src/worlds/meshes`, `src/ui` if needed) may import it.
-- **Tests:** `node --test` discovers `test/**/*.test.js`. Put yours in `test/<your-area>/`. Run `node --test test/<your-area>/` while you work. Keep them fast (whole suite under about 60 s).
+- **Tests:** `node --test` discovers `test/**/*.test.js`. Put yours in `test/<your-area>/`. Run `node --test "test/<your-area>/**/*.test.js"` while you work (passing a bare directory does not work in Node 22). Keep them fast (whole suite under about 60 s).
 - **Build check:** `node tools/build.mjs --out .out/<your-area>.html` builds the whole game into your own scratch file, so you don't clobber anyone else's. Do it before you hand back, and fix anything of yours that breaks the build.
 - **Don't commit.** The lead commits. Don't run `git` commands that change state.
 - **UI rules from Marco:** no on-screen control hints or key prompts; no speech bubbles or boxes over the play area (chatter is small white floating text); nothing reserves space when empty; big readable sizes based on the unit `u = min(innerHeight, 0.55*innerWidth)/100`; must not clip at 2000x747, 2560x1080, 1920x1080, 1280x720 or 812x375.

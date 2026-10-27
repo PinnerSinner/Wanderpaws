@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node tools/build.mjs",
     "watch": "node tools/build.mjs --watch",
-    "test": "node --test --test-concurrency=4",
+    "test": "node --test --test-concurrency=4 \"test/**/*.test.js\"",
     "sim": "node tools/sim.mjs",
     "shots": "node tools/screenshots.mjs"
   },

@@ -1,0 +1,4 @@
+{
+  "_help": "Each photo: name (used in output file names), source (file in assets/user/photos/originals/), kind ('human' | 'cat' | 'dog' | 'prop'), optional blur polygons (lists of [x, y] as 0..1 fractions) for anything to hide, optional subject override {x, y, size} as fractions, optional outputs subset. Originals are git-ignored; only the small derivatives get pushed.",
+  "photos": []
+}
