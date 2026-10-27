@@ -149,7 +149,7 @@ export const w5 = {
     for (let r = 0; r < 4; r++) for (let k = 0; k < 13; k++) {
       let col = keyCols[(r + k) % 4];
       if (r === 0 && k === 0) col = C.amber; if (r === 1 && k === 12) col = C.mint; if (r === 3 && k === 12) col = C.pink;
-      b.box(0.36, 0.2, 0.36, col, { x: -2.6 + k * 0.43, y: 0.45 + r * 0.02, z: 0.68 - r * 0.45, r: 0.06 });
+      b.cyl(0.19, 0.26, 0.2, col, { x: -2.6 + k * 0.43, y: 0.45 + r * 0.02, z: 0.68 - r * 0.45, seg: 4, ry: PI / 4 });
     }
     b.box(2.4, 0.2, 0.36, C.cream, { x: 0.0, y: 0.45, z: -1.05 + 0.15, r: 0.06 }); // space bar row offset
     b.ball(0.05, '#7fffc8', { x: 2.6, y: 0.42, z: -0.98, seg: 6, layer: 'glow', blink: [0.7, 0.2] });
@@ -178,7 +178,7 @@ export const w5 = {
   cablespool(b) {
     for (const sx of [-1, 1]) b.cyl(5.0, 5.0, 0.6, '#c8925a', { x: sx * 2.8, y: 5.0, rz: PI / 2, seg: 22, cf: (x, y, z, wx, wy, wz, nx) => (Math.abs(nx) > 0.9 ? mixRgb('#d8a26a', '#b07a48', Math.abs(Math.sin(Math.hypot(wy - 5, wz) * 2.2)) * 0.6) : rgb('#a8723e')) });
     const cols = ['#5a8ae8', '#7fe3c4', '#ffb347', '#ff7ad9', '#b9a3ff'];
-    b.cyl(3.6, 3.6, 5.0, '#5a8ae8', { y: 5.0, rz: PI / 2, seg: 22, hs: 10, fc: true, cf: (x, y, z, wx) => rgb(cols[Math.floor((wx + 2.5) * 1.0) % 5]) });
+    b.cyl(3.6, 3.6, 5.0, '#5a8ae8', { y: 5.0, rz: PI / 2, seg: 22, hs: 10, fc: true, cf: (x, y, z, wx) => rgb(cols[((Math.floor((wx + 2.5) * 1.0) % 5) + 5) % 5]) });
     for (let i = 0; i < 20; i++) b.box(0.08, 0.1, 0.6, '#ffffff', { x: -2.4 + i * 0.25, y: 8.65, z: ((i * 7) % 5 - 2) * 0.2 }); // winding lines
     b.cyl(0.9, 0.9, 6.4, '#8a5a34', { y: 5.0, rz: PI / 2, seg: 10 });
     b.tube([[1.0, 8.4, 2.0], [1.4, 6.0, 5.4], [2.2, 0.4, 6.4], [4.0, 0.3, 7.6]], 0.3, '#5a8ae8', { ts: 18, rs: 6 });

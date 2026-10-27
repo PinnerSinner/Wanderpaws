@@ -94,7 +94,8 @@ function gridMode(entries) {
 function itemsMode() {
   const ids = q.get('ids') ? q.get('ids').split(',') : CATALOGUE_ORDER;
   gridMode(ids.map((id) => {
-    const obj = buildItemMesh(THREE, mats, id);
+    let obj;
+    try { obj = buildItemMesh(THREE, mats, id); } catch (e) { console.error(id, e.message); obj = new THREE.Group(); obj.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 'red' }))); obj.userData.dims = null; }
     const it = CATALOGUE[id];
     const d = obj.userData.dims;
     return { name: id + (obj.userData.fallback ? ' (FALLBACK)' : ''), obj, sub: d ? `${d.width.toFixed(2)}x${d.height.toFixed(2)}` : '' };
