@@ -76,7 +76,7 @@ export function createLighting(THREE, { scene, mats, sky }) {
     mood.warmth = S.warmth; mood.night = S.night; mood.day = S.day;
 
     // sun colour and strength
-    c.sun.copy(c.palSun).lerp(c.warmSun, S.warmth * 0.75);
+    c.sun.copy(c.palSun).lerp(c.warmSun, S.warmth * 0.5);
     if (S.moon) c.sun.copy(c.moon);
     const baseI = (palette.sunIntensity ?? 2) * 1.5;
     const intensity = S.moon ? baseI * 0.32 * S.night : baseI * (0.35 + 0.65 * S.day);

@@ -47,10 +47,11 @@ void main() {
   float sd = dot( d, uSunDir );
   float sdc = clamp( sd, 0.0, 1.0 );
   float glowW = mix( 6.0, 2.5, uWarm );
-  col += uSunColor * pow( sdc, glowW ) * ( 0.18 + 0.45 * uWarm ) * ( 1.0 - uNight );
+  col += uSunColor * pow( sdc, glowW ) * ( 0.18 + 0.55 * uWarm ) * ( 1.0 - uNight );
+  col += vec3( 1.0, 0.75, 0.45 ) * pow( sdc, 220.0 ) * ( 0.6 + 0.8 * uWarm ) * ( 1.0 - uNight );
   col += uSunColor * pow( sdc, 64.0 ) * 0.35 * ( 1.0 - uNight * 0.6 );
   float disc = smoothstep( 0.99935 - 0.0003 * uSunSize, 0.99965 - 0.0002 * uSunSize, sd );
-  col = mix( col, uSunColor * 1.8 + vec3( 0.25 ), disc * ( 1.0 - uStudio ) );
+  col = mix( col, vec3( 1.0, 0.93, 0.78 ) * 2.2, disc * ( 1.0 - uStudio ) );
   // horizon warmth on the sun's side at golden hour
   float az = clamp( dot( normalize( d.xz + 1e-4 ), normalize( uSunDir.xz + 1e-4 ) ) * 0.5 + 0.5, 0.0, 1.0 );
   col += vec3( 1.0, 0.45, 0.25 ) * uWarm * 0.22 * pow( az, 3.0 ) * exp( -abs( h ) * 7.0 ) * ( 1.0 - uNight );

@@ -7,11 +7,11 @@
 import { noise2, fbm2 } from '../../core/math.js';
 
 export const TITLE_PALETTE = {
-  skyTop: '#6fa8e0', skyBottom: '#ffd2a8', horizon: '#ffc9a0', fog: '#ffc9a8', fogNear: 40, fogFar: 420,
+  skyTop: '#5b8fd8', skyBottom: '#ffd2a8', horizon: '#ffc59a', fog: '#f9c8aa', fogNear: 70, fogFar: 950,
   sun: '#ffe3b8', sunIntensity: 2.1, ambient: '#c9d6f2', ground: '#f0d4a4', accent: '#ff7a59',
   water: '#4fcac8', waterDeep: '#1f7fa8', foam: '#fffaf0', outline: '#3a2a22',
 };
-export const TITLE_TOD = 0.728;
+export const TITLE_TOD = 0.737;
 
 export function titleHeight(x, z) {
   // sand slopes down to the sea at x ~ 9, dunes inland, a little ripple everywhere
@@ -155,7 +155,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
     } catch (e) { console.warn('[render] title item', id, e); }
     return null;
   };
-  const palms = [[6.5, -5.5, 0.3], [-1.5, 9.5, 2.1], [10.5, 14, 4.0], [-6, -9, 1.2], [-3, 3.5, 5.1]];
+  const palms = [[5.4, 8, 0.3], [-1, 12, 2.1], [3.6, 19, 4.0], [-4, 25, 1.2], [1.8, 33, 5.1], [-7, 40, 3.3], [-3.5, 4.5, 0.9]];
   for (const [x, z, r] of palms) {
     const p = tryScenery('palm', () => fallbackPalm(THREE, mats));
     p.position.set(x, titleHeight(x, z) - 0.05, z);
@@ -164,25 +164,25 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
     group.add(p);
   }
   const loaf = tryScenery('sugarloaf', () => fallbackLoaf(THREE, mats));
-  loaf.position.set(430, -6, 330);
+  loaf.position.set(330, -8, 280);
   loaf.rotation.y = -0.6;
   group.add(loaf);
   const loaf2 = tryScenery('sugarloaf', () => fallbackLoaf(THREE, mats));
-  loaf2.position.set(620, -10, 120);
+  loaf2.position.set(420, -12, 140);
   loaf2.scale.multiplyScalar(0.7);
   group.add(loaf2);
   const parasol = tryItem('parasol');
-  if (parasol) { parasol.position.set(1.4, titleHeight(1.4, -2.6), -2.6); parasol.rotation.y = 0.4; group.add(parasol); }
+  if (parasol) { parasol.position.set(3.9, titleHeight(3.9, 4.4), 4.4); parasol.rotation.y = 0.4; group.add(parasol); }
   const towel = tryItem('towel');
-  if (towel) { towel.position.set(1.8, titleHeight(1.8, -1.6) + 0.01, -1.6); towel.rotation.y = 0.5; group.add(towel); }
+  if (towel) { towel.position.set(4.6, titleHeight(4.6, 3.3) + 0.01, 3.3); towel.rotation.y = 0.5; group.add(towel); }
   const ball = tryItem('beachball');
-  if (ball) { ball.position.set(5.2, titleHeight(5.2, 1.9), 1.9); group.add(ball); }
+  if (ball) { ball.position.set(5.9, titleHeight(5.9, 1.2), 1.2); group.add(ball); }
   const coco = tryItem('coconut');
-  if (coco) { coco.position.set(2.6, titleHeight(2.6, 0.9), 0.9); group.add(coco); }
+  if (coco) { coco.position.set(2.5, titleHeight(2.5, 1.6), 1.6); group.add(coco); }
 
   group.traverse((o) => { if (o.isMesh && o !== terrain && o !== sea) { o.castShadow = true; o.receiveShadow = true; } });
 
-  const hero = { x: 3.6, z: 0.2, yaw: -1.95 };
+  const hero = { x: 3.6, z: 0.2, yaw: -2.75 };
   hero.y = titleHeight(hero.x, hero.z);
 
   // gulls circling over the shore (fake boids state)
@@ -200,7 +200,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
   // the drifting camera: writes into pos/look. aspect for framing the hero on the left.
   function camera(time, aspect, fovDeg, pos, look, heroSize = 1) {
     const s = heroSize;
-    const yaw = Math.PI / 2 - 0.38 + Math.sin(time * 0.045) * 0.14;
+    const yaw = 0.8 + Math.sin(time * 0.045) * 0.12;
     const d = 3.5 * s + Math.sin(time * 0.07) * 0.25 * s;
     const h = 0.95 * s + Math.sin(time * 0.06 + 1) * 0.12 * s;
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
