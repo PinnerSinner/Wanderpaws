@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { itemsForWorld } from '../../src/worlds/catalogue.js';
 import { COSMETICS } from '../../src/animals/cosmetics.js';
-import { eggIdsForWorld, KNOWN_EGGS } from '../../src/meta/data.js';
+import { eggIdsForWorld, KNOWN_EGGS, globalEggIds } from '../../src/meta/data.js';
 import { newProfile, run, finish } from './helpers.js';
 
 const w1Items = () => itemsForWorld('w1').filter((it) => !it.goldenOf).map((it) => it.id);
@@ -39,7 +39,8 @@ test('journal: per-world count, total and pct', () => {
 test('eggs: counts per world and totals', () => {
   const { p } = newProfile();
   const total = ['w1', 'w2', 'w3', 'w4', 'w5'].reduce((a, w) => a + eggIdsForWorld(w).length, 0);
-  assert.equal(p.eggs.total(), total);
+  assert.equal(p.eggs.total(), total + globalEggIds().length);
+  for (const w of ['w1', 'w2', 'w3', 'w4', 'w5']) assert.ok(!eggIdsForWorld(w).some((id) => id.startsWith('G')), 'globals once only');
   assert.equal(KNOWN_EGGS.length, 66);
   p.onRunEvent({ type: 'egg', id: 'C1', worldId: 'w1' }, run('w1'));
   p.onRunEvent({ type: 'egg', id: 'C1', worldId: 'w1' }, run('w1'));
@@ -49,6 +50,12 @@ test('eggs: counts per world and totals', () => {
   assert.equal(p.eggs.count('w1'), 1);
   assert.equal(p.eggs.count('w2'), 1);
   assert.equal(p.stats.eggs, 2);
+  p.onRunEvent({ type: 'egg', id: 'G8', worldId: 'w2' }, run('w2'));
+  assert.equal(p.eggs.count('w2'), 1, 'global eggs belong to no world');
+  assert.equal(p.eggs.count(), 3);
+  p.codes.check('DISCO');
+  assert.equal(p.eggs.has('G3'), true);
+  assert.equal(p.eggs.count(), 4);
 });
 
 test('eggs: result.eggsFound is folded in at finish', () => {

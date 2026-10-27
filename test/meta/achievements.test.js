@@ -20,7 +20,7 @@ test('achievements: about forty, unique ids, copy for each', () => {
 });
 
 test('copy: no em dashes in meta copy', () => {
-  for (const k of allKeys()) if (k.startsWith('ach.') || k.startsWith('meta.')) assert.ok(!t(k).includes('—'), k);
+  for (const k of allKeys()) if (k.startsWith('ach.') || k.startsWith('meta.')) assert.ok(!t(k).includes('\u2014'), k);
 });
 
 test('Tea-Total: five Tea Times in one run, mid-run', () => {

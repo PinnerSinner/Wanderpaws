@@ -99,6 +99,7 @@ const list = [
   T('jeep', 4.2, 2.0, ['w3']),
   T('cablecar', 5.0, 3.5, ['w3']),
   T('bridgesection', 6.0, 1.5, ['w3']),
+  T('treehouse', 9.0, 10.0, ['w3']),
   T('lookouthut', 12.0, 7.0, ['w3']),
   T('palmtree', 15.0, 16.0, ['w3']),
 

@@ -1,10 +1,10 @@
-// The Biccies economy. Tuned so a mid-priced cosmetic (about 250) costs a run
-// or two: a first clear of a world pays roughly 350 to 500, a replay 150 to 300.
+// The Biccies economy. Tuned so a cosmetic (40 to 500) costs a run or two:
+// a first clear of a world pays roughly 350 to 450, a replay 150 to 250.
 
 import { CATALOGUE } from '../worlds/catalogue.js';
 
 export const ECONOMY = Object.freeze({
-  gobbleRate: 0.3,          // biccies per catalogue value point gobbled
+  gobbleRate: 0.2,          // biccies per catalogue value point gobbled (worlds hold ~1,300 to 1,900 value)
   goldenMult: 5,            // golden variants are worth five times as much
   specialMult: 3,           // the daily special item is worth triple (F16)
   comboMin: 5,              // combos shorter than this pay nothing extra

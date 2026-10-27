@@ -16,7 +16,7 @@ export function logoSVG(name = 'Gobblepaws') {
   const top = split[0], bottom = split[1];
   const topLen = Math.min(600, 100 * Math.max(4, top.length));
   const botLen = Math.min(420, 92 * Math.max(3, bottom.length));
-  return `<svg class="gp-logo-svg" viewBox="0 0 640 320" role="img" aria-label="${esc(name)}">
+  return `<svg class="gp-logo-svg" viewBox="0 0 640 350" role="img" aria-label="${esc(name)}">
   <defs>
     <linearGradient id="${a}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a8"/><stop offset=".55" stop-color="#ffd166"/><stop offset="1" stop-color="#ff9b54"/></linearGradient>
     <linearGradient id="${b}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ff0d6"/><stop offset="1" stop-color="#2bb59a"/></linearGradient>
@@ -32,7 +32,7 @@ export function logoSVG(name = 'Gobblepaws') {
       <text x="400" y="292" font-size="124" textLength="${botLen}" lengthAdjust="spacingAndGlyphs" fill="${INK}" stroke="${INK}" stroke-width="36" transform="translate(0 10)">${esc(bottom)}</text>
       <text x="400" y="292" font-size="124" textLength="${botLen}" lengthAdjust="spacingAndGlyphs" fill="url(#${b})" stroke="${INK}" stroke-width="22" paint-order="stroke">${esc(bottom)}</text>
     </g>` : ''}
-    <g transform="translate(118 236) rotate(-18)">
+    <g transform="translate(112 222) rotate(-18)">
       <g fill="${INK}" transform="translate(0 6)">${pawPath(1.25)}</g>
       <g fill="#ff7a59" stroke="${INK}" stroke-width="8" paint-order="stroke">${pawPath(1.25)}</g>
     </g>

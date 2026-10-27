@@ -111,7 +111,7 @@ function surfaceAt(x, z) {
 
 // ---- colliders ------------------------------------------------------------
 const bigTrees = [
-  [-60, 20], [-30, 60], [20, 60], [60, 70], [-90, 80], [-130, 30], [-140, -40], [-80, -30], [-20, -50], [40, -60], [90, -70],
+  [-60, 40], [-30, 60], [20, 60], [60, 70], [-90, 80], [-130, 30], [-140, -40], [-80, -30], [-20, -50], [40, -60], [90, -70],
   [120, 70], [60, 110], [150, 90], [200, 60], [210, -60], [120, -80], [-40, 120], [10, 140], [-160, 110], [-200, 120], [-210, -80],
   [-60, -100], [20, -110], [80, -120], [160, 150], [-100, 150], [72, -48], [26, -40], [36, -44], [-48, -34],
 ];
@@ -167,7 +167,7 @@ const anchors = [
   at('bridgesection', 12, P.bridge.z + 26, { rot: HALF_PI }), at('bridgesection', -12, P.bridge.z - 26, { rot: HALF_PI }),
   at('signpost', 4, P.bridge.z + 17), at('signpost', -4, P.bridge.z - 17),
   // trail clusters
-  ...TRAIL.flatMap(([x, z], i) => cluster(['brazilnut', 'acai', 'mango', 'hikingboot', 'bananas'], x, z, 5, 6, `trail${i}`)),
+  ...TRAIL.filter(([x, z]) => Math.abs(z - riverZ(x)) > 10).flatMap(([x, z], i) => cluster(['brazilnut', 'acai', 'mango', 'hikingboot', 'bananas'], x, z, 5, 6, `trail${i}`)),
   ...TRAIL_N.flatMap(([x, z], i) => cluster(['brazilnut', 'binoculars', 'bananas', 'bromeliad'], x, z, 5, 5, `trailn${i}`)),
   // leaf slide: a pile of leaves (and mangoes) at the bottom
   ...cluster(['mango', 'bananas', 'jackfruit', 'bromeliad'], P.slideEnd.x, P.slideEnd.z - 3, 4, 8, 'slide'),
@@ -203,6 +203,11 @@ const anchors = [
   ...[[-40, 80], [100, 80], [150, 120], [-90, 110], [180, 100], [-170, -60], [220, 120], [-220, 100]].map(([x, z]) => at('boulder', x, z)),
   ...[[-60, 140], [150, 160], [200, 130], [-200, 150], [220, -140], [-200, -140], [100, -150], [0, -160]].map(([x, z]) => at('palmtree', x, z)),
   at('cable', -18, 30), at('cable', 150, 30), at('router', 108, 150),
+  // the upper storey: treehouses, more bridge sections, cable cars and huts for the big finish
+  ...[[-64, 36], [24, 64], [-136, -44], [116, 74], [-36, 124], [86, -74], [156, 94], [-156, 114]].map(([x, z]) => at('treehouse', x, z)),
+  at('bridgesection', 30, 75, { rot: 0.4 }), at('bridgesection', -80, 100, { rot: 1 }), at('bridgesection', 140, -90), at('bridgesection', -170, 60, { rot: 0.2 }),
+  at('cablecar', 130, 150), at('cablecar', 80, 140), at('cablecar', -215, 60), at('jeep', 210, 90), at('jeep', -60, -140), at('jeep', 160, -120),
+  at('lookouthut', -220, 70), at('lookouthut', 205, -110), at('lookouthut', -30, -150),
 ];
 
 const fill = [
@@ -228,7 +233,7 @@ export const W3 = {
   heightAt, surfaceAt,
   water: [
     { kind: 'river', level: 0, rect: { minX: -183, maxX: 116, minZ: -42, maxZ: 40 } },
-    { kind: 'river', level: PLATEAU - 0.6, rect: { minX: -250, maxX: -181, minZ: -6, maxZ: 6 } },
+    { kind: 'river', level: PLATEAU - 0.6, rect: { minX: -250, maxX: -199.5, minZ: -6, maxZ: 6 } },
     { kind: 'pond', level: 0, rect: { minX: P.lake.x - P.lake.rx, maxX: P.lake.x + P.lake.rx, minZ: P.lake.z - P.lake.rz, maxZ: P.lake.z + P.lake.rz } },
   ],
   colliders, scenery,

@@ -58,7 +58,7 @@
   text-rendering: optimizeLegibility;
 }
 .gp *, .gp *::before, .gp *::after { box-sizing: border-box; }
-.gp button, .gp input { font: inherit; color: inherit; }
+:where(.gp) :where(button, input) { font: inherit; color: inherit; }
 .gp .gp-ico { width: 1em; height: 1em; display: block; flex: none; }
 .gp .gp-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
 
@@ -395,7 +395,7 @@
 .gp-logo { width: 100%; max-height: calc(30 * var(--u)); display: flex; justify-content: center; transform: translate(calc(var(--px) * 0.8 * var(--u)), calc(var(--py) * 0.6 * var(--u))); animation: gp-logo-in 0.9s var(--spring) both; flex: 0 1 auto; min-height: 0; }
 .gp-logo svg { width: 100%; height: auto; max-height: calc(30 * var(--u)); overflow: visible; }
 @keyframes gp-logo-in { from { opacity: 0; transform: translateY(calc(-4 * var(--u))) scale(0.8) rotate(-4deg); } to { opacity: 1; transform: none; } }
-.gp-title-tag { text-align: center; font-weight: 900; font-size: var(--fs-label); color: var(--ink-soft); margin-top: calc(-1.4 * var(--u)); }
+.gp-title-tag { text-align: center; font-weight: 900; font-size: var(--fs-label); color: var(--ink-soft); margin-top: calc(-0.6 * var(--u)); }
 .gp-title-main { display: flex; flex-direction: column; gap: calc(1.4 * var(--u)); }
 .gp-title-main .gp-btn--big { width: 100%; justify-content: flex-start; padding-left: calc(3.6 * var(--u)); }
 .gp-title-main .gp-btn--big .gp-icon { font-size: 1.25em; }

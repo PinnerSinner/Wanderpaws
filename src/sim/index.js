@@ -42,7 +42,7 @@ export function createSim(opts = {}) {
     playerName: opts.playerName || 'Oli', catalogue: CATALOGUE,
     rng, rngFx: rng.fork('fx'), rngIdle: rng.fork('idle'), rngAI: null,
     events: [],
-    debug: { launches: 0, maxItemSpeedRatio: 0, fillRejects: 0, gobbleStarts: 0, dominoes: 0, warnings: [], eggErrors: [] },
+    debug: { launches: 0, maxItemSpeedRatio: 0, fillRejects: 0, gobbleStarts: 0, dominoes: 0, warnings: [], eggErrors: [], launchLog: [] },
     gravityScale: modifiers.lowGravity ? TUNE.lowGravity : 1,
     growthK: (world.goals && world.goals.growthK) || 1,
     completed: null, nCompleted: 0,

@@ -32,7 +32,18 @@ export function worldData(id) {
   return (WORLDS || []).find((w) => w && w.id === id) || null;
 }
 
+// Global eggs (G1..G7 are the title codes; G8, G9 run through every world).
+export const GLOBAL_EGGS = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
+export const isGlobalEgg = (id) => String(id || '').charAt(0) === 'G';
+
+export function globalEggIds() {
+  const set = new Set(GLOBAL_EGGS);
+  for (const w of WORLDS || []) for (const e of (w && w.eggs) || []) if (e && isGlobalEgg(e.id)) set.add(e.id);
+  return [...set];
+}
+
 export function eggWorld(id) {
+  if (isGlobalEgg(id)) return null;
   for (const w of WORLDS || []) {
     if (w && Array.isArray(w.eggs) && w.eggs.some((e) => e && e.id === id)) return w.id;
   }
@@ -41,7 +52,7 @@ export function eggWorld(id) {
 
 export function eggIdsForWorld(worldId) {
   const w = worldData(worldId);
-  if (w && Array.isArray(w.eggs) && w.eggs.length) return w.eggs.map((e) => e.id).filter(Boolean);
+  if (w && Array.isArray(w.eggs) && w.eggs.length) return w.eggs.map((e) => e && e.id).filter((id) => id && !isGlobalEgg(id));
   return KNOWN_EGGS.filter((id) => EGG_PREFIX[id.charAt(0)] === worldId);
 }
 

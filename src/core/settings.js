@@ -26,6 +26,12 @@ export const DEFAULT_SETTINGS = Object.freeze({
   subtitles: true,
   translatePt: true,        // show English under pt-BR lines
   chatter: true,            // floating text on/off
+  // controls
+  bindings: null,           // null = defaults; input owns the shape
+  lookSensitivity: 1,       // 0.3 .. 3
+  invertY: false,
+  padDeadzone: 0.18,
+  padCurve: 1.6,
   // misc
   locale: 'en-GB',
   showFps: false,

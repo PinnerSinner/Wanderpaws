@@ -33,7 +33,7 @@ export function updateGobbleFlags(S) {
   if (S.typeBlocked.length < nt) growTypeArrays(S, nt);
   for (let t = 0; t < nt; t++) S.typeBlocked[t] = flags[S.noGobbleKey[t]] ? 1 : 0;
   const n = I.count, st = I.state, sz = I.size, gb = I.gobbleable, al = I.almost, ti = I.typeIndex;
-  const T = D.T, A = D.almostT;
+  const T = D.T * (1 + 1e-6), A = D.almostT * (1 + 1e-6); // items are Float32: be kind at the boundary
   for (let i = 0; i < n; i++) {
     const s = st[i];
     if (s >= IS_GOBBLING) { gb[i] = 0; al[i] = 0; continue; }

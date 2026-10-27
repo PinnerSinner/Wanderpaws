@@ -11,7 +11,7 @@ export const TITLE_PALETTE = {
   sun: '#ffe3b8', sunIntensity: 2.1, ambient: '#c9d6f2', ground: '#f0d4a4', accent: '#ff7a59',
   water: '#4fcac8', waterDeep: '#1f7fa8', foam: '#fffaf0', outline: '#3a2a22',
 };
-export const TITLE_TOD = 0.705;
+export const TITLE_TOD = 0.728;
 
 export function titleHeight(x, z) {
   // sand slopes down to the sea at x ~ 9, dunes inland, a little ripple everywhere
@@ -63,14 +63,15 @@ function fallbackPalm(THREE, mats) {
   const frondMat = mats.sway('#5fb36a', { strength: 1.4 });
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
-    const f = new THREE.Mesh(new THREE.ConeGeometry(0.35, 3.0, 4, 1), frondMat);
-    f.scale.set(1, 1, 0.25);
-    f.position.set(x + Math.cos(a) * 1.2, y + 0.1, Math.sin(a) * 1.2);
-    f.rotation.set(Math.sin(a) * 1.15, -a, -Math.cos(a) * 1.15, 'YXZ');
-    f.rotation.order = 'YXZ';
-    f.rotation.y = -a + Math.PI / 2;
-    f.rotation.z = 1.2;
-    g.add(f);
+    const pivot = new THREE.Group();
+    pivot.position.set(x, y, 0);
+    pivot.rotation.y = a;
+    const f = new THREE.Mesh(new THREE.ConeGeometry(0.38, 3.0, 4, 1), frondMat);
+    f.scale.set(1, 1, 0.22);
+    f.rotation.z = -1.95 - (i % 2) * 0.25;
+    f.position.set(1.35, -0.25, 0);
+    pivot.add(f);
+    g.add(pivot);
   }
   const nut = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), mats.toon('#6b4a2a'));
   nut.position.set(x + 0.1, y - 0.2, 0.1);
@@ -103,7 +104,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
   tg.translate(-5, 0, 0);
   const pos = tg.getAttribute('position');
   const cols = new Float32Array(pos.count * 3);
-  const dry = new THREE.Color('#f2d7a6'), wet = new THREE.Color('#c9a77a'), dune = new THREE.Color('#ecc994'), c = new THREE.Color();
+  const dry = new THREE.Color('#f4e2c4'), wet = new THREE.Color('#d2b48e'), dune = new THREE.Color('#efd6ae'), c = new THREE.Color();
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), z = pos.getZ(i);
     const h = titleHeight(x, z);
@@ -154,7 +155,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
     } catch (e) { console.warn('[render] title item', id, e); }
     return null;
   };
-  const palms = [[-4, -7, 0.3], [-9, 6, 2.1], [1.5, 11, 4.0], [-13, -14, 1.2]];
+  const palms = [[6.5, -5.5, 0.3], [-1.5, 9.5, 2.1], [10.5, 14, 4.0], [-6, -9, 1.2], [-3, 3.5, 5.1]];
   for (const [x, z, r] of palms) {
     const p = tryScenery('palm', () => fallbackPalm(THREE, mats));
     p.position.set(x, titleHeight(x, z) - 0.05, z);
@@ -163,11 +164,11 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
     group.add(p);
   }
   const loaf = tryScenery('sugarloaf', () => fallbackLoaf(THREE, mats));
-  loaf.position.set(520, -6, 210);
+  loaf.position.set(430, -6, 330);
   loaf.rotation.y = -0.6;
   group.add(loaf);
   const loaf2 = tryScenery('sugarloaf', () => fallbackLoaf(THREE, mats));
-  loaf2.position.set(640, -10, -260);
+  loaf2.position.set(620, -10, 120);
   loaf2.scale.multiplyScalar(0.7);
   group.add(loaf2);
   const parasol = tryItem('parasol');
@@ -181,7 +182,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
 
   group.traverse((o) => { if (o.isMesh && o !== terrain && o !== sea) { o.castShadow = true; o.receiveShadow = true; } });
 
-  const hero = { x: 3.6, z: 0.2, yaw: -2.15 };
+  const hero = { x: 3.6, z: 0.2, yaw: -1.95 };
   hero.y = titleHeight(hero.x, hero.z);
 
   // gulls circling over the shore (fake boids state)
@@ -199,7 +200,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
   // the drifting camera: writes into pos/look. aspect for framing the hero on the left.
   function camera(time, aspect, fovDeg, pos, look, heroSize = 1) {
     const s = heroSize;
-    const yaw = Math.PI / 2 + 0.42 + Math.sin(time * 0.045) * 0.16;
+    const yaw = Math.PI / 2 - 0.38 + Math.sin(time * 0.045) * 0.14;
     const d = 3.5 * s + Math.sin(time * 0.07) * 0.25 * s;
     const h = 0.95 * s + Math.sin(time * 0.06 + 1) * 0.12 * s;
     const fx = Math.sin(yaw), fz = Math.cos(yaw);

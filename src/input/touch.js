@@ -144,7 +144,7 @@ export function createTouchGestures(opts = {}) {
 }
 
 // The paw: one big pad and four toe beans.
-export const PAW_SVG = '<svg viewBox="0 0 100 100" width="58%" height="58%" aria-hidden="true" focusable="false">'
+export const PAW_SVG = '<svg viewBox="0 0 100 100" width="64%" height="64%" aria-hidden="true" focusable="false">'
   + '<g fill="#fffaf2" stroke="rgba(58,42,34,0.55)" stroke-width="3">'
   + '<path d="M50 50c-13 0-25 12-27 23-2 9 5 14 13 13 5-1 9-3 14-3s9 2 14 3c8 1 15-4 13-13-2-11-14-23-27-23z"/>'
   + '<ellipse cx="25" cy="44" rx="8.5" ry="11" transform="rotate(-18 25 44)"/>'

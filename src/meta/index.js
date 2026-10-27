@@ -11,7 +11,7 @@ import { COSMETICS } from '../animals/cosmetics.js';
 import { mergeLook } from '../animals/customise.js';
 import { CATALOGUE, itemsForWorld } from '../worlds/catalogue.js';
 
-import { WORLD_IDS, DEFAULT_NAMES, NAME_MAX, worldOrder, worldData, eggIdsForWorld, eggWorld, goldenForWorld } from './data.js';
+import { WORLD_IDS, DEFAULT_NAMES, NAME_MAX, worldOrder, worldData, eggIdsForWorld, eggWorld, goldenForWorld, globalEggIds, isGlobalEgg } from './data.js';
 import { ruleMet, isRuleUnlocked, starCount } from './rules.js';
 import { loadData, saveData, defaultData } from './save.js';
 import { ECONOMY, gobbleBiccies, comboBiccies, starBiccies, dailyBiccies, modeMult } from './economy.js';
@@ -72,12 +72,15 @@ export function createProfile(storage, opts = {}) {
   const journalTotal = (w) => (w ? worldItems(w) : allItems()).length;
   const journalPct = (w) => { const tot = journalTotal(w); return tot ? Math.floor((100 * journalCount(w)) / tot) : 0; };
 
+  // World eggs per world, plus the global ones (title codes and G8/G9) once.
   function allEggIds() {
     const out = [];
     for (const w of WORLD_IDS) for (const id of eggIdsForWorld(w)) out.push(id);
+    for (const id of globalEggIds()) out.push(id);
     return out;
   }
-  const eggCount = (w) => { let n = 0; for (const id of (w ? eggIdsForWorld(w) : allEggIds())) if (d.eggs[id]) n++; return n; };
+  const eggFound = (id) => !!d.eggs[id] || (isGlobalEgg(id) && !!globalEggFound(id));
+  const eggCount = (w) => { let n = 0; for (const id of (w ? eggIdsForWorld(w) : allEggIds())) if (eggFound(id)) n++; return n; };
   const eggTotal = (w) => (w ? eggIdsForWorld(w) : allEggIds()).length;
 
   function goldenFound(w) {
@@ -444,10 +447,10 @@ export function createProfile(storage, opts = {}) {
       list: (w) => (w ? worldItems(w) : allItems()).map((id) => ({ id, found: !!d.journal[id], times: d.journal[id] || 0, golden: !!d.golden[id] })),
     },
     eggs: {
-      has: (id) => !!d.eggs[id] || (String(id).charAt(0) === 'G' && !!globalEggFound(id)),
+      has: (id) => eggFound(id),
       count: (w) => eggCount(w),
       total: (w) => eggTotal(w),
-      list: (w) => (w ? eggIdsForWorld(w) : allEggIds()).map((id) => ({ id, world: eggWorld(id), found: !!d.eggs[id] })),
+      list: (w) => (w ? eggIdsForWorld(w) : allEggIds()).map((id) => ({ id, world: eggWorld(id), found: eggFound(id) })),
     },
     goldenFound,
 

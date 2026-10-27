@@ -308,7 +308,7 @@ void main() {
   float ground = gpGround( vW.xz );
   bool hasGround = ground > -999.0;
   float depth = hasGround ? max( vW.y - ground, 0.0 ) : 50.0;
-  float dk = 1.0 - exp( -depth * 0.55 * s );
+  float dk = 1.0 - exp( -depth * 0.9 * s );
   vec3 col = mix( gpShallow, gpDeep, dk );
 
   float ndl = clamp( dot( N, gpSunDir ), 0.0, 1.0 );
@@ -325,18 +325,18 @@ void main() {
 
   // foam: a soft line hugging the shore plus bands rolling in
   float wob = gpNoise( p * 0.9 + t * 0.12 );
-  float fw = 0.55;
+  float fw = 0.14;
   float dn = depth * s;
   float shore = 1.0 - smoothstep( 0.0, fw, dn + ( wob - 0.5 ) * 0.25 );
   float lines = sin( dn / fw * 2.6 - t * 1.5 + wob * 3.5 );
-  float band = smoothstep( 0.72, 0.96, lines ) * ( 1.0 - smoothstep( 0.0, fw * 3.2, dn ) );
+  float band = smoothstep( 0.78, 0.97, lines ) * ( 1.0 - smoothstep( 0.0, fw * 4.0, dn ) );
   float breakup = smoothstep( 0.25, 0.65, gpNoise( p * 3.0 + vec2( t * 0.2, 0.0 ) ) );
   float foam = hasGround ? clamp( smoothstep( 0.3, 0.75, shore ) + band * 0.75 * breakup, 0.0, 1.0 ) : 0.0;
   col = mix( col, gpFoam, foam * 0.92 );
 
   float alpha = mix( gpAlphaShallow, 0.97, dk );
   alpha = max( alpha, foam * 0.95 );
-  if ( hasGround ) alpha *= smoothstep( 0.0, 0.05, dn );
+  if ( hasGround ) alpha *= smoothstep( 0.0, 0.02, dn );
   gl_FragColor = vec4( col, alpha );
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
