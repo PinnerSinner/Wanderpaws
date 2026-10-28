@@ -536,7 +536,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     itemOpts.camX = camera.position.x; itemOpts.camY = camera.position.y; itemOpts.camZ = camera.position.z;
     itemOpts.pxPerRad = pxPerRad; itemOpts.cullPx = tier.id === 'low' ? 2.5 : tier.id === 'medium' ? 1.6 : 1;
     itemOpts.far = lighting.fog.far * 1.05;
-    itemOpts.lodPx = tier.id === 'low' ? 16 : tier.id === 'medium' ? 11 : 7;
+    itemOpts.lodPx = tier.id === 'low' ? 30 : tier.id === 'medium' ? 20 : 11;
     level.items.sync(state.items, alpha, vdt, pPose, time, itemOpts);
     level.npcs.sync(state.npcs, alpha, dt, camera, pxPerRad, tier.npcCullPx);
     birds.sync(state.birds, alpha, 1);

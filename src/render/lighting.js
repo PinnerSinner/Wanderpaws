@@ -76,7 +76,7 @@ export function createLighting(THREE, { scene, mats, sky }) {
     mood.warmth = S.warmth; mood.night = S.night; mood.day = S.day;
 
     // sun colour and strength
-    c.sun.copy(c.palSun).lerp(c.warmSun, S.warmth * 0.5);
+    c.sun.copy(c.palSun).lerp(c.warmSun, S.warmth * 0.35);
     if (S.moon) c.sun.copy(c.moon);
     const baseI = (palette.sunIntensity ?? 2) * 1.5;
     const intensity = S.moon ? baseI * 0.32 * S.night : baseI * (0.35 + 0.65 * S.day);
@@ -85,12 +85,12 @@ export function createLighting(THREE, { scene, mats, sky }) {
 
     // sky colours
     c.top.copy(c.palTop).lerp(c.warmSky, S.warmth * 0.25).lerp(c.nightTop, S.night * 0.85);
-    c.horizon.copy(c.palHor).lerp(c.warmSky, S.warmth * 0.55).lerp(c.night, S.night * 0.75);
+    c.horizon.copy(c.palHor).lerp(c.warmSky, S.warmth * 0.35).lerp(c.night, S.night * 0.75);
     c.bottom.copy(c.palBot).lerp(c.warmSky, S.warmth * 0.3).lerp(c.night, S.night * 0.8);
     c.fog.copy(c.palFog).lerp(c.horizon, 0.45);
 
     // hemisphere: sky-tinted from above, ground bounce from below
-    c.ambient.copy(c.palAmb).lerp(c.top, 0.3).lerp(c.warmSky, S.warmth * 0.2);
+    c.ambient.copy(c.palAmb).lerp(c.top, 0.3).lerp(c.warmSky, S.warmth * 0.1);
     c.ground.copy(c.palGround).lerp(c.warmSun, S.warmth * 0.25).multiplyScalar(0.85);
     hemi.color.copy(c.ambient);
     hemi.groundColor.copy(c.ground);

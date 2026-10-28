@@ -114,7 +114,7 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
   // far LOD: every distant item, of any type, as a soft low-poly lump in its
   // type's average colour, scaled to its bounding box. One draw call in all.
   let farCap = 256;
-  const farGeo = new THREE.IcosahedronGeometry(0.5, 1);
+  const farGeo = new THREE.IcosahedronGeometry(0.5, 0);
   farGeo.translate(0, 0.5, 0);
   let farFxArr = new Float32Array(farCap * 3);
   let farFx = new THREE.InstancedBufferAttribute(farFxArr, 3);
@@ -396,7 +396,7 @@ void main() { float r = length( vUv * 2.0 - 1.0 ); float a = ( 1.0 - smoothstep(
       far.instanceMatrix.clearUpdateRanges(); far.instanceMatrix.addUpdateRange(0, nFar * 16); far.instanceMatrix.needsUpdate = true;
       far.instanceColor.clearUpdateRanges(); far.instanceColor.addUpdateRange(0, nFar * 3); far.instanceColor.needsUpdate = true;
       farFx.clearUpdateRanges(); farFx.addUpdateRange(0, nFar * 3); farFx.needsUpdate = true;
-      triangles += nFar * 80;
+      triangles += nFar * 20;
     }
     iconGeo.instanceCount = nIcons;
     icons.visible = nIcons > 0;

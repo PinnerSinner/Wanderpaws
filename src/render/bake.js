@@ -81,10 +81,12 @@ export function bakeObject(THREE, root, mats) {
         vo++;
       };
       if (g.index) {
-        for (let k = 0; k < pos.count; k++) writeV(k);
+        // only the vertices this group uses, each once
+        const remap = new Int32Array(pos.count).fill(-1);
+        const idx = (src) => { if (remap[src] < 0) { remap[src] = vo - base; writeV(src); } return base + remap[src]; };
         for (let k = 0; k < p.count; k += 3) {
-          const a = g.index.getX(p.start + k), bI = g.index.getX(p.start + k + 1), c = g.index.getX(p.start + k + 2);
-          I[io++] = base + a; I[io++] = base + (flip ? c : bI); I[io++] = base + (flip ? bI : c);
+          const a = idx(g.index.getX(p.start + k)), bI = idx(g.index.getX(p.start + k + 1)), c = idx(g.index.getX(p.start + k + 2));
+          I[io++] = a; I[io++] = flip ? c : bI; I[io++] = flip ? bI : c;
         }
       } else {
         for (let k = 0; k < p.count; k++) writeV(p.start + k);

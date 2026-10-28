@@ -1,21 +1,18 @@
 // Render test harness (not shipped): drives the real renderer with the real
 // sim on a world file directly, with a greedy gobbler bot, so the level visuals
-// can be checked before the world index is wired up. Built by build.mjs.
+// can be checked before the world index is wired up. Built by src/render/dev/build-harness.mjs.
 //   .out/render-harness.html?world=w1&t=20&quality=low
-import { createBus, EV } from '../../../src/core/events.js';
-import { createStorage } from '../../../src/core/storage.js';
-import { createSettings } from '../../../src/core/settings.js';
-import { createLoop } from '../../../src/core/loop.js';
-import { getSpecies } from '../../../src/animals/species.js';
-import { createSim } from '../../../src/sim/index.js';
-import { createRenderer } from '../../../src/render/index.js';
-import { W1 } from '../../../src/worlds/w1-copacabana.js';
-import { W2 } from '../../../src/worlds/w2-london.js';
-import { W3 } from '../../../src/worlds/w3-tijuca.js';
+import { createBus, EV } from '../../core/events.js';
+import { createStorage } from '../../core/storage.js';
+import { createSettings } from '../../core/settings.js';
+import { createLoop } from '../../core/loop.js';
+import { getSpecies } from '../../animals/species.js';
+import { createSim } from '../../sim/index.js';
+import { createRenderer } from '../../render/index.js';
+import { getWorld } from '../../worlds/index.js';
 
 const q = new URLSearchParams(location.search);
-const worlds = { w1: W1, w2: W2, w3: W3 };
-const world = worlds[q.get('world') || 'w1'] || W1;
+const world = getWorld(q.get('world') || 'w1');
 const species = getSpecies(q.get('species') || 'oli');
 const settings = createSettings(createStorage('gp-harness'));
 settings.set('quality', q.get('tier') || q.get('quality') || 'low');
