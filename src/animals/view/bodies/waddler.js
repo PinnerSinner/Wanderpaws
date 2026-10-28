@@ -140,7 +140,7 @@ export function buildWaddler(THREE, S, B, bones, plan, species, q) {
     attach: {
       head: { bone: 'head', pos: [0, hr * 0.85, -0.01], scale: hr / 0.165, tilt: 0 },
       face: { bone: 'head', pos: [0, plan.eye[1], plan.eye[2] + plan.eyeR * 0.9], scale: hr / 0.165 * (duck ? 0.9 : 1), spread: plan.eye[0] },
-      neck: duck ? { bone: 'neck1', pos: [0, 0, 0], scale: 0.75, tilt: 0.2 } : { bone: 'body', pos: [0, Hh * 0.33, 0.0], scale: 1.65, tilt: 0 },
+      neck: duck ? { bone: 'neck1', pos: [0, 0, 0], scale: 0.75, tilt: 0.2 } : { bone: 'body', pos: [0, Hh * 0.36, 0.0], scale: 1.35, tilt: 0 },
       back: { bone: 'body', pos: duck ? [0, R * 0.8, -0.04] : [0, 0.05, -R * 0.9], scale: duck ? 0.9 : 1.0, len: duck ? 0.4 : 0.35, upright: !duck },
       badge: { bone: 'body', pos: duck ? [0, 0.02, 0.2] : [0, Hh * 0.18, R * 0.95], scale: 0.9 },
     },

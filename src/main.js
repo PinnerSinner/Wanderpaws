@@ -108,6 +108,7 @@ function boot() {
     profile.setLastSpecies(species.id);
     director.reset(world.id);
     renderer.showScene('level', { world, sim, species, look, ghost: profile.ghost.load(world.id) });
+    audio.setPlayer?.({ speciesId: species.id, soundPack: look.soundPack || null });
     audio.music(world.music || world.id);
     ui.show('hud');
     flushSimEvents();

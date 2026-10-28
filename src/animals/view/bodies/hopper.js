@@ -172,7 +172,7 @@ export function buildHopper(THREE, S, B, bones, plan, species, q) {
   return {
     pattern: { eyeY: head.y + plan.eye[1], headZ: head.z + hr * 0.3, bodyTop: body.y + 0.15, zMin: zBack, zMax: zFront, bbox: [-0.3, 0, zBack - 0.1, 0.3, head.y + 0.45, head.z + 0.25] },
     attach: {
-      head: { bone: 'head', pos: frog ? [0, hr * 0.5, -0.03] : [0, hr * 0.85, -0.03], scale: hr / 0.165 * (frog ? 1.1 : 0.9), tilt: frog ? 0 : -0.15 },
+      head: { bone: 'head', pos: frog ? [0, hr * 0.5, -0.03] : [0, hr * 0.85, -0.03], scale: hr / 0.165 * (frog ? 1.1 : 1.05), tilt: frog ? 0 : -0.15 },
       face: { bone: 'head', pos: [0, plan.eye[1], plan.eye[2] + plan.eyeR * 0.95], scale: hr / 0.165, spread: plan.eye[0] },
       neck: { bone: frog ? 'head' : 'neck', pos: frog ? [0, -0.06, -0.02] : [0, -0.01, 0.0], scale: frog ? 1.25 : 0.85, tilt: frog ? 0 : Math.PI / 2 - plan.neckDir },
       back: { bone: 'body', pos: [0, frog ? 0.11 : 0.15, -0.04], scale: frog ? 0.9 : 0.8, len: zFront - zBack },

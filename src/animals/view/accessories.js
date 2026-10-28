@@ -153,7 +153,7 @@ export function createAccessories(THREE, mats, S, bones, skel, attach, species) 
       const k = kit();
       const g = new THREE.PlaneGeometry(0.3, 0.36, 8, 10);
       const p = g.getAttribute('position');
-      for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); const u = (0.18 - y) / 0.36; p.setXYZ(i, x * (0.8 + 0.5 * u), 0.012 - Math.abs(x) * 0.25 * (1 - u * 0.4) - u * 0.03, 0.06 - u * 0.34); }
+      for (let i = 0; i < p.count; i++) { const x0 = p.getX(i), y = p.getY(i); const u = (0.18 - y) / 0.36; const x = x0 * (0.75 + 0.45 * u); const a = Math.min(1.35, Math.abs(x) / 0.2); p.setXYZ(i, Math.sign(x) * Math.sin(a) * 0.21, 0.012 + (Math.cos(a) - 1) * 0.21 - u * 0.015, 0.07 - u * 0.36); }
       g.computeVertexNormals();
       k.add(g, (x, y, z) => (z < -0.26 ? c[1] : c[0]));
       const back = new THREE.PlaneGeometry(0.3, 0.36, 8, 10); const bp = back.getAttribute('position');
@@ -272,7 +272,7 @@ export function createAccessories(THREE, mats, S, bones, skel, attach, species) 
         const l = live[slot];
         if (!l || !l.anim) continue;
         if (l.anim === 'cape') {
-          l.mesh.rotation.x = -0.15 - speed * 0.7 + Math.sin(t * (6 + speed * 8)) * (0.04 + speed * 0.1) + jig.z * 0.3;
+          l.mesh.rotation.x = -(speed * 0.55 + Math.max(0, Math.sin(t * (6 + speed * 8))) * (0.02 + speed * 0.12) - jig.z * 0.2);
         } else if (l.anim === 'wings') {
           const f = Math.sin(t * 14) * 0.5;
           for (const [w, s] of l.wings) w.rotation.z = s * (0.2 + f);
