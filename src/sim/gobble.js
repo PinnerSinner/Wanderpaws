@@ -168,7 +168,7 @@ export function completeGobble(S, i) {
   if (c.count > st.starProgress.maxCombo) st.starProgress.maxCombo = c.count;
   const food = X.food[i] === 1;
   const foodMult = food ? 1 + (S.species.traits.foodBonus || 0) : 1;
-  const k = S.growthK;
+  const k = S.growthK * (S.growthDamp ? Math.pow(S.startSize / Math.max(S.startSize, p.size), S.growthDamp) : 1);
   const s0 = p.size;
   const s1 = grow(s0, I.size[i], k, c.mult, foodMult);
   p.size = s1;

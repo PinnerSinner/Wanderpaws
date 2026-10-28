@@ -49,6 +49,7 @@ export const TUNE = {
   itemFriction: 5,
   itemVcapK: 22,            // cap = itemVcapK * size^0.85 + 2
   wobbleFreq: 2.6,
+  growthDamp: 0,            // default for goals.growthDamp: k * (start / size)^damp (0 = the pure contract formula)
   // Misc
   slowMoTime: 0.35,
   slowMoRate: 0.4,          // sim time scale at full slow-mo

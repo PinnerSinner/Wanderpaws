@@ -153,11 +153,12 @@ function mulberry(seed) {
   return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
-async function runOne({ worldId, speciesId, bot, seconds, seed, mode, assist, forceFixtures }) {
+async function runOne({ worldId, speciesId, bot, seconds, seed, mode, assist, forceFixtures, kmul = 1, damp = null }) {
   const { createSim } = await imp('src/sim/index.js');
   const { SPECIES } = await imp('src/animals/species.js');
   const { worlds } = await loadWorlds(forceFixtures);
-  const world = worlds.find((w) => w.id === worldId);
+  const base = worlds.find((w) => w.id === worldId);
+  const world = (kmul !== 1 || damp != null) ? { ...base, goals: { ...base.goals, growthK: (base.goals.growthK || 1) * kmul, ...(damp != null ? { growthDamp: damp } : {}) } } : base;
   const species = SPECIES[speciesId];
   const sim = createSim({ world, species, mode, seed, assist });
   const rng = mulberry(seed * 7919 + 13);
@@ -219,14 +220,16 @@ if (!isMainThread) {
   const seed = +argVal('--seed', '7');
   const mode = argVal('--mode', 'story');
   const assist = has('--assist');
+  const kmul = +argVal('--kmul', '1');
+  const damp = argVal('--damp') != null ? +argVal('--damp') : null;
   const jobs = [];
   for (const w of worldIds) {
     const world = worlds.find((x) => x.id === w);
     if (!world) { console.error(`unknown world ${w} (have ${worlds.map((x) => x.id).join(', ')})`); process.exit(2); }
     const secs = seconds || (world.goals && world.goals.timer) || 300;
     for (const s of speciesIds) {
-      if (botArg !== 'random') jobs.push({ worldId: w, speciesId: s, bot: 'greedy', seconds: secs, seed, mode, assist, forceFixtures });
-      if (botArg !== 'greedy') jobs.push({ worldId: w, speciesId: s, bot: 'random', seconds: Math.min(secs, 120), seed: seed + 1, mode, assist, forceFixtures });
+      if (botArg !== 'random') jobs.push({ worldId: w, speciesId: s, bot: 'greedy', seconds: secs, seed, mode, assist, forceFixtures, kmul, damp });
+      if (botArg !== 'greedy') jobs.push({ worldId: w, speciesId: s, bot: 'random', seconds: Math.min(secs, 120), seed: seed + 1, mode, assist, forceFixtures, kmul, damp });
     }
   }
   const nWorkers = Math.max(1, Math.min(jobs.length, (os.availableParallelism ? os.availableParallelism() : os.cpus().length) - 0, +argVal('--workers', '8')));

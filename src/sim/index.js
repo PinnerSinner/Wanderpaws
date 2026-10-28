@@ -144,6 +144,7 @@ export function createSim(opts = {}) {
   S.weatherCtl = createWeather(S);
   initModes(S);
   if (state.goals.growthK) S.growthK = state.goals.growthK;
+  S.growthDamp = g.growthDamp != null ? +g.growthDamp : TUNE.growthDamp;
 
   // zones
   const zoneList = [];

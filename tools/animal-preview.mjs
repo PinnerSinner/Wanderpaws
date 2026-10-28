@@ -53,7 +53,7 @@ for (const id of ids) {
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await page.goto('file://' + html + '?' + q.toString());
   await page.waitForFunction(() => window.__preview && window.__preview.ready, null, { timeout: 120000 }).catch(() => {});
-  const name = argVal('--name', null) || (layout === 'grid' ? id : `${id}-${layout}${argVal('--sc', '') ? '-' + argVal('--sc') : ''}`);
+  const name = argVal('--name', null) ? (ids.length > 1 ? `${id}-${argVal('--name')}` : argVal('--name')) : (layout === 'grid' ? id : `${id}-${layout}${argVal('--sc', '') ? '-' + argVal('--sc') : ''}`);
   const out = path.join(outDir, name + '.png');
   const el = await page.$('canvas');
   if (el) await el.screenshot({ path: out }); else await page.screenshot({ path: out });

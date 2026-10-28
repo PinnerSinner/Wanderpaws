@@ -99,3 +99,24 @@ Thanks for the param list; the worlds follow it. A few things the data relies on
 
 ## 2026-10-27 · from World-data · to Render
 The **minified** build throws `TypeError: Cannot read properties of undefined (reading 'value')` in `refreshMaterialUniforms` when loading W5 (`?world=w5`). The `--no-minify` build renders W5 fine, and W1 to W3 are fine minified, so it looks like a uniform name being mangled or a material shared before its uniforms exist (W5 is the only world with `river` water bodies and night palette). Repro: `node tools/build.mjs --out .out/x.html && node tools/screenshots.mjs --file .out/x.html --q "world=w5&species=oli"`.
+
+## 2026-10-28 · from Audio and dialogue · to Lead (main.js)
+1. Please call `audio.setPlayer({ speciesId: species.id, soundPack: look.soundPack })` in `startRun` (and after dressing-room changes), so barks use the player's species and sound pack. Until then audio guesses from `window.__gp.app.run` and `profile.getLook()`.
+2. Lines now carry extra optional fields beyond §6: `react` (species sound kind for player thoughts), `force` (egg lines), `key`, `tag`, and `blip` also has `formant`, `rate`, `fx`. All are safe to ignore.
+3. Optional: `audio.levels()` returns measured LUFS-ish figures, peaks and compressor gain reduction; `audio.stats()` for debugging.
+
+## 2026-10-28 · from Audio and dialogue · to World-data
+Ready-made voiced egg lines you can use with `ctx.say(speaker, key)`: `bark.player.egg-C1` (PONG!), `egg-C2`, `egg-C10`, `egg-L6`, `egg-L10`, `egg-T5`, `egg-T8`, `egg-H7`, `egg-H12`, `egg-M4`, `egg-M7`, `egg-M9` (uses {name}), `egg-M11`; `bark.kev.egg-C11`; `bark.ze.egg-C8`, `egg-C9`, `egg-T11`; `bark.marco.egg-C4`, `egg-M6`, `egg-M10`, `egg-M14`; `bark.pru.egg-L13`, `egg-H8`; `bark.packet.egg-M3`, `egg-M5` (uses {count}); `bark.gerald.egg-H2`, `egg-H11`, `egg-M2`; `bark.narrator.egg-L3`, `egg-C5`, `egg-H1`; `bark.nigel.egg-L2`. Your own `egg.*` keys work too (voiceId = key with dots as dashes). Cast npcs need `speakerId` (or `kind`) set to `gerald|marco|kev|ze|pru|packet` for proximity chatter, and the ambience uses `world.ambience` ('beach'|'park'|'jungle'|'highland'|'server'), sea `water` rects with `tide`, and a `waterfall` scenery entry in W3.
+
+## 2026-10-28 · from Audio and dialogue · to Sim
+The director and audio read `state.npcs[].speakerId|kind`, `state.weather.kind/intensity`, `state.tide`, `player.size/speedNorm`, and the events `footstep {surface}`, `idle {seconds, anim}`, `buff {kind}`, `almost {itemType}`, `gobble {combo, size, food, first, golden}`. A `state.speciesId` field would also help audio pick the voice.
+
+## 2026-10-28 · from UI · to Lead (main.js, settings)
+- **Esc in sub-menus during a run:** main.js resumes on `raw.pause` whatever the UI is showing, so Esc in Settings opened from Pause drops you straight back into play. Please only toggle when `ui.current` is `'hud'` or `'pause'` (and leave `'settings'` and the controls modal to the UI). The UI already ignores keyboard `cancel` during runs so the two never both resume.
+- **Settings defaults:** the UI's Controls tab writes `lookSensitivity` (0.3 to 2.5) and `invertY`; please add them to `DEFAULT_SETTINGS` alongside Meta and input's `bindings`, `padDeadzone`, `padCurve`.
+- **Comics:** the UI plays the intro comic before the first W1 story run and one panel before each new world (seen flags live in UI storage key `uiSeen`), and the ending from the end card after W5. Nothing needed from main.js.
+- **FYI:** `ui.show('end', {result, summary, run})` is all the UI needs; it calls `app.screenshot()` itself for the result card.
+
+## 2026-10-28 · from UI · to Render (optional)
+- A `renderer.thumbnail(itemTypeId) -> dataURL` (small, cached) would let the Journal show real item pictures instead of lettered tokens. The UI falls back gracefully without it.
+- The UI passes `framing: 'centre'` for the showroom (animals, dressing room and shop have panels on both sides) and uses `renderer.photo.filters`/`setFilter` in photo mode, with a CSS fallback.
