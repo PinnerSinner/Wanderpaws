@@ -199,11 +199,11 @@ export const W4 = {
   nameKey: 'world.w4.name', introKey: 'world.w4.intro', outroKey: 'world.w4.outro',
   music: 'w4', ambience: 'snow',
   palette: {
-    skyTop: '#7f8fcf', skyBottom: '#ffc89a', horizon: '#ffd8b0', fog: '#e6dcef', fogNear: 120, fogFar: 900,
-    sun: '#ffcf96', sunIntensity: 1.8, ambient: '#b8b8e0', ground: '#f4f6fb', accent: '#9a5aa8',
+    skyTop: '#6f9ad8', skyBottom: '#ffe2c0', horizon: '#f2e6dc', fog: '#dde7f1', fogNear: 160, fogFar: 1100,
+    sun: '#fff0d6', sunIntensity: 1.9, ambient: '#c2d2ec', ground: '#f4f6fb', accent: '#9a5aa8',
     water: '#5a8ac8', waterDeep: '#284a8a', foam: '#ffffff', outline: '#2a2840',
   },
-  timeOfDay: { start: 0.68, end: 0.78 },
+  timeOfDay: { start: 0.6, end: 0.74 },  // crisp afternoon sliding into golden hour
   bounds: { minX: -450, maxX: 450, minZ: -350, maxZ: 350 },
   spawn: { x: P.spawn.x, z: P.spawn.z, yaw: PI },
   heightAt, surfaceAt,

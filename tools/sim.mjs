@@ -123,7 +123,7 @@ function greedyBot(sim, rng) {
     const sg = p.sig;
     if (sigHold > 0) { sigHold -= dt; inp.sigHeld = sigHold > 0; }
     else inp.sigHeld = false;
-    if (sg.ready && target >= 0 && rng() < 0.03) {
+    if (!process.env.SIM_NOSIG && sg.ready && target >= 0 && rng() < 0.03) {
       inp.sig = true;
       if (sg.kind === 'sniffBoost' || sg.kind === 'superHop') { sigHold = 0.5; inp.sigHeld = true; }
     }

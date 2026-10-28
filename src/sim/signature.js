@@ -178,7 +178,8 @@ const START = {
   superHop(S) {
     const p = S.state.player, sp = S.species, pw = p.sig.power;
     const yaw = aimDir(S);
-    p.sig.hs = launch(S, yaw, p.size * (sp.stats.jump || 1) * (1.1 + 1.9 * pw), p.size * (2.5 + 3.5 * pw));
+    // A long, flat-ish arc: far enough to feel great, low enough not to strand you on rooftops
+    p.sig.hs = launch(S, yaw, p.size * (sp.stats.jump || 1) * (0.7 + 0.9 * pw), p.size * (2.5 + 3.5 * pw));
   },
   flapGlide(S) {
     const p = S.state.player;
@@ -188,8 +189,10 @@ const START = {
     } else if (p.vy < 0) p.vy *= 0.3;
   },
   shellUp(S) {
-    const p = S.state.player;
-    p.vx *= 1.1; p.vz *= 1.1;
+    // Tuck in and bowl off in the aimed direction: the tortoise's one burst of speed
+    const p = S.state.player, top = S.derived.top, yaw = aimDir(S);
+    const s = Math.max(hypot(p.vx, p.vz), top * 1.7);
+    p.vx = Math.sin(yaw) * s; p.vz = Math.cos(yaw) * s;
   },
   tongueSnap(S) {
     const p = S.state.player, sg = p.sig, D = S.derived;
@@ -298,7 +301,7 @@ const UPDATE = {
   shellUp(S, dt) {
     const p = S.state.player, M = S.sigMods, R = S.run, T = S.terrain, D = S.derived;
     M.immune = true; M.rolling = true; M.directVel = true; M.noJump = true;
-    M.steerMult = 0.3;
+    M.steerMult = 0.6;
     // roll downhill like a bowling ball
     const e = Math.max(0.2, p.size * 0.5);
     const gx = (T.heightAt(p.x + e, p.z) - T.heightAt(p.x - e, p.z)) / (2 * e);
@@ -307,7 +310,7 @@ const UPDATE = {
       p.vx -= gx * D.gravity * 1.2 * dt; p.vz -= gz * D.gravity * 1.2 * dt;
       const fr = Math.exp(-0.35 * dt);
       p.vx *= fr; p.vz *= fr;
-      if (R.inputMag > 0) { p.vx += Math.sin(R.inputYaw) * D.top * 0.8 * dt; p.vz += Math.cos(R.inputYaw) * D.top * 0.8 * dt; }
+      if (R.inputMag > 0) { p.vx += Math.sin(R.inputYaw) * D.top * 2.2 * dt; p.vz += Math.cos(R.inputYaw) * D.top * 2.2 * dt; }
     }
     const s = hypot(p.vx, p.vz), cap = D.top * 2.4;
     if (s > cap) { p.vx *= cap / s; p.vz *= cap / s; }

@@ -69,6 +69,9 @@ function boot() {
 
   const director = createDirector({ rng: createRng(hashString('director')), settings, bus });
   director.onLine((line) => {
+    // Keep the opening beat clean: only the narrator speaks until a couple of seconds after GO
+    const st = sim ? sim.state : null;
+    if (st && line.speaker !== 'narrator' && !line.force && (st.phase === 'intro' || (st.phase === 'play' && st.time < (st.introEnd || 2) + 2.5))) return;
     if (settings.get('chatter')) renderer.floatingText.add(line);
     audio.say(line);
   });

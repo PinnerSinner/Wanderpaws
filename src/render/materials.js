@@ -81,6 +81,9 @@ varying vec3 vGpWorld;
 attribute float aWing;
 attribute float aFlap;
 #endif
+#ifdef GP_DETAIL
+varying vec3 vGpDW;
+#endif
 `)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 #if defined( GP_SWAY ) || defined( GP_ITEMFX )
@@ -124,6 +127,9 @@ attribute float aFlap;
   vFx = aFx;
   vGpWorld = gpW.xyz;
 #endif
+#ifdef GP_DETAIL
+  vGpDW = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;
+#endif
 `);
 
     shader.fragmentShader = shader.fragmentShader
@@ -140,7 +146,32 @@ uniform vec3 gpGoldenColor;
 varying vec3 vFx;
 varying vec3 vGpWorld;
 #endif
+#ifdef GP_DETAIL
+varying vec3 vGpDW;
+float gpHash( vec2 p ) { return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
+float gpVnoise( vec2 p ) {
+  vec2 i = floor( p ), f = fract( p );
+  vec2 u = f * f * ( 3.0 - 2.0 * f );
+  return mix( mix( gpHash( i ), gpHash( i + vec2( 1.0, 0.0 ) ), u.x ), mix( gpHash( i + vec2( 0.0, 1.0 ) ), gpHash( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
+}
+#endif
 `)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+#ifdef GP_DETAIL
+  {
+    // Ground detail: mottled patches at three scales so terrain reads as a place, not a flat colour.
+    // The finest layer fades out with distance so it never shimmers.
+    float gpD = length( vViewPosition );
+    vec2 gpP = vGpDW.xz;
+    float gpN1 = gpVnoise( gpP * 1.9 );
+    float gpN2 = gpVnoise( gpP * 0.33 + 7.3 );
+    float gpN3 = gpVnoise( gpP * 0.055 - 3.1 );
+    float gpFine = mix( gpN1, 0.5, smoothstep( 6.0, 45.0, gpD ) );
+    float gpV = ( gpFine - 0.5 ) * 0.18 + ( gpN2 - 0.5 ) * 0.16 + ( gpN3 - 0.5 ) * 0.14;
+    diffuseColor.rgb *= 1.0 + gpV;
+    diffuseColor.rgb += vec3( 0.025, 0.035, -0.015 ) * ( gpN3 - 0.5 );
+  }
+#endif`)
       .replace('#include <gradientmap_pars_fragment>', `
 vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
   float d = dot( normal, lightDirection );
@@ -194,6 +225,7 @@ outgoingLight *= gpTint;
     if (o.emissiveIntensity != null) m.emissiveIntensity = o.emissiveIntensity;
     m.defines = m.defines || {};
     if (o.rim === false) m.defines.GP_NORIM = '';
+    if (o.detail) m.defines.GP_DETAIL = '';
     if (o.rimStrength != null) m.userData.gpRim = { value: o.rimStrength };
     m.onBeforeCompile = (shader) => patchToon(shader, m);
     m.customProgramCacheKey = toonKey;
@@ -537,7 +569,7 @@ function optKey(o) {
     o.rim === false ? 'nr' : '', o.rimStrength ?? '',
     o.emissive != null ? String(o.emissive) : '', o.emissiveIntensity ?? '',
     o.map ? o.map.uuid : '', o.vertexColors ? 'vc' : '',
-    o.transparent ? 'tr' : '', o.opacity ?? '', o.side ?? '', o.flatShading ? 'fs' : '',
+    o.transparent ? 'tr' : '', o.opacity ?? '', o.side ?? '', o.flatShading ? 'fs' : '', o.detail ? 'dt' : '',
   ].join(',');
 }
 

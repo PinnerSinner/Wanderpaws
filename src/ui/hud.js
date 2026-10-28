@@ -104,7 +104,7 @@ export function createHUD(ctx) {
       const p = state.player;
       // phase transitions
       if (state.phase !== lastPhase) {
-        if (state.phase === 'intro') showGo('ready');
+        if (state.phase === 'intro') { /* the narrator's intro line is the 'ready' beat; no extra text */ }
         else if (state.phase === 'play' && lastPhase === 'intro') showGo('go');
         else if (state.phase === 'play' && goEl && goEl.classList.contains('gp-ready')) { goEl.remove(); goEl = null; }
         else if (state.phase === 'finished') showGo('finish');

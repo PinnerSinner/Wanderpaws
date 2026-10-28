@@ -9,6 +9,7 @@ import { buildSceneryMesh, PARAM_IDS, STRIP_IDS, backdropMaterial } from './scen
 import { SCENERY } from '../ids.js';
 import { rgb, noise2, fbm2, smooth, rngFrom, hashStr, lumpy, mixRgb } from './util.js';
 import { hazeCf } from './scenery/w1.js';
+import { buildGroundCover } from './groundcover.js';
 
 const TAU = Math.PI * 2;
 const VARIED = new Set(['hotelblock', 'apartmentblock', 'terrace']);
@@ -226,11 +227,16 @@ export function buildScenery(THREE, mats, world) {
 
   // terrain
   const tg = buildTerrain(THREE, world);
-  const terrain = new THREE.Mesh(tg, mats.toon('#ffffff', { vertexColors: true }));
+  const terrain = new THREE.Mesh(tg, mats.toon('#ffffff', { vertexColors: true, detail: true }));
   terrain.name = 'terrain';
   terrain.receiveShadow = true; terrain.castShadow = false; terrain.userData.noShadow = true;
   group.add(terrain);
   disposables.push(tg);
+
+  // grass tufts and flowers on grass and leaf litter
+  const cover = buildGroundCover(THREE, mats, world);
+  group.add(cover.group);
+  disposables.push(cover);
 
   // water bodies
   const pal = world.palette || {};

@@ -175,7 +175,7 @@ export const SPECIES = {
   }),
   tortoise: make('tortoise', {
     archetype: 'shelled',
-    stats: { speed: 0.7, accel: 0.8, turn: 0.85, reach: 1.15, jump: 0.5 },
+    stats: { speed: 0.74, accel: 0.85, turn: 0.85, reach: 1.3, jump: 0.5 },
     traits: { noDrops: true },
     signature: { kind: 'shellUp', cooldown: 5, duration: 3 },
     personality: {

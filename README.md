@@ -6,7 +6,9 @@ A cosy 3D collect-and-grow game for the browser. You play an animal (Oli the but
 
 **Play it:** <https://pinnersinner.github.io/Wanderpaws/> (and soon at <https://gobble.marcoverse.co.uk>)
 
-> **Status:** under active construction. The engine, tooling and design are in; the five worlds, thirteen animals, menus, audio and meta-game are being built in parallel and land over the next few pushes. Every push to the default branch redeploys the link above automatically. Screenshots of every world, animal and screen get added here once the full build lands.
+![Gobblepaws title screen: Oli on Copacabana beach at sunset](docs/shots/title.jpg)
+
+> **Status:** playable end to end. Five worlds, thirteen animals, the dressing room, Journal, daily challenge, Zoomies, achievements, synthesised audio and around 86 easter eggs are all in. Every push to the default branch redeploys the link above. See [Known rough edges](#known-rough-edges) for what's still being polished.
 
 ---
 
@@ -16,10 +18,29 @@ A cosy 3D collect-and-grow game for the browser. You play an animal (Oli the but
 - **Five worlds:** Copacabana Promenade, a London park and street, the Tijuca Rainforest, the Snowy Highlands and the Marcoverse (a neon-soft cloud and data-centre fantasy).
 - **Dressing room:** colours, markings, breed-style presets, hats, collars, capes, trails and sound packs. Plus **"make it your pet"**: load a photo of your own pet and it samples the coat colours locally in your browser (nothing is ever uploaded).
 - **Reasons to keep playing:** a Journal of every item with silly one-liners, golden collectibles, size-gated secret areas, a date-seeded **daily challenge**, an endless **Zoomies** mode, a chill mode, a speedrun ghost of your best run, Biccies to spend on cosmetics, and around 40 achievements with daft names.
-- **Easter eggs everywhere:** about 66 of them across the worlds (a router blinking PING in Morse, the 127 bus to Localhost, a firewall you open by barking the HTTPS port...) plus title-screen secret words. They're tracked in the Journal so you can hunt for the rest.
+- **Easter eggs everywhere:** about 86 of them across the worlds (a router blinking PING in Morse, the 127 bus to Localhost, a firewall you open by barking the HTTPS port...) plus title-screen secret words. They're tracked in the Journal so you can hunt for the rest.
 - **Accessibility built in:** reduced motion, colour-blind palettes with shape-coded items, text and HUD scaling, high-contrast HUD, assist mode, one-handed controls, subtitles on by default, and five independent volume sliders. Photosensitivity-safe effects throughout.
 
 The full design lives in [`SPEC.md`](SPEC.md).
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Copacabana Promenade](docs/shots/w1.jpg) | ![London park and street](docs/shots/w2.jpg) |
+| **Copacabana Promenade**: the wave pavement, kiosks and a tide that comes and goes | **London**: park, bandstand and a sky that can't make its mind up |
+| ![Tijuca Rainforest](docs/shots/w3.jpg) | ![Snowy Highlands](docs/shots/w4.jpg) |
+| **Tijuca Rainforest**: waterfalls, a rope bridge and a lily lake | **Snowy Highlands**: frozen loch, curling and a wild haggis |
+| ![The Marcoverse](docs/shots/w5.jpg) | ![World map](docs/shots/worlds.jpg) |
+| **The Marcoverse**: cable rivers, router towers, binary pavement | **The world map** |
+| ![Pick your animal](docs/shots/animals.jpg) | ![Dressing room](docs/shots/dressing.jpg) |
+| **Pick your animal** | **The dressing room** |
+| ![Journal](docs/shots/journal.jpg) | ![On a phone, landscape](docs/shots/phone.jpg) |
+| **The Journal** | **On a phone (landscape)** |
+
+All thirteen animals, built entirely from code:
+
+![All thirteen animals](docs/shots/animals-lineup.jpg)
 
 ## Controls
 
@@ -101,6 +122,17 @@ The game works with zero assets and gets better as you add them.
 | Tooling | `tools/` | Single-file build, screenshots, headless sims, the photo pipeline |
 
 Built with [Three.js](https://threejs.org/) 0.186.1 and [esbuild](https://esbuild.github.io/). Everything you see is built from code at runtime: no external 3D models, no sound files, no fonts to download. Logic outside the browser-only folders imports in plain Node, so it's covered by `node --test`. [`CONTRACTS.md`](CONTRACTS.md) documents how the modules talk to each other.
+
+
+## Known rough edges
+
+Honest list of what's measured, what isn't, and what's next:
+
+- **Performance is unverified on real hardware.** Headless screenshots run on a software renderer (about 10 fps whatever you do), so they say nothing about a real laptop. Draw calls are 75 to 155 per frame (budget 250), but triangle counts run over the spec's targets (roughly 250k to 800k depending on world and quality). If it stutters, drop to Low in Settings and tell me which world.
+- **Audio is measured, not heard.** Voices sit about 4.6 dB over the music (target 5). Please tell me if anything's too loud or too quiet.
+- **Balance:** headless bots finish every world with every animal on most seeds (63 of 65 on the default seed; the misses finish on other seeds). The tortoise is deliberately slow and cuts it fine.
+- **Small art bits on the list:** stripy coats are a bit blotchy, the tortoise's shell lines blur, the C13 "MARCOVERSE from above" pavement egg isn't spelled out yet, and foliage doesn't sway in its own shadow.
+- **Save clip** records about 5 to 10 seconds of webm where `MediaRecorder` is supported, with a screenshot fallback elsewhere. Not yet tested on Safari.
 
 ## Credits
 
