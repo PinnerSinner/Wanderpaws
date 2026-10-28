@@ -18,7 +18,7 @@ const CSS = `
 .gp-ft .gp-sub { display: block; font-size: 0.7em; font-weight: 700; opacity: 0.9; margin-top: 0.12em; font-style: normal; }
 .gp-ft.thought { font-style: italic; font-weight: 700; }
 .gp-ft.item { font-size: calc(max(13px, var(--gpu) * 2.1) * var(--gpts, 1)); font-weight: 800; }
-.gp-ft.big { font-size: calc(max(22px, var(--gpu) * 4.8) * var(--gpts, 1)); font-weight: 900; letter-spacing: 0.02em;
+.gp-ft.big { font-size: calc(max(19px, var(--gpu) * 3.7) * var(--gpts, 1)); font-weight: 900; letter-spacing: 0.02em;
   text-shadow: 0 0 0.12em rgba(38, 24, 32, 0.95), 0 0.06em 0.1em rgba(38, 24, 32, 0.9), 0 0 0.5em rgba(255, 170, 90, 0.45); }
 `;
 
@@ -46,7 +46,7 @@ export function createFloatingText({ overlay, settings, max = 12 }) {
     overlay.appendChild(el);
     entries.push({
       el, txt, sub, active: false, age: 0, ttl: 2, w: 0, h: 0, x: 0, y: 0, placed: false,
-      speaker: '', style: 'chatter', anchor: null, ax: 0, ay: 0, az: 0, visible: false, slot: -1,
+      speaker: '', style: 'chatter', fixed: false, anchor: null, ax: 0, ay: 0, az: 0, visible: false, slot: -1,
       lastT: '', lastO: -1, dying: false,
     });
   }
@@ -84,6 +84,8 @@ export function createFloatingText({ overlay, settings, max = 12 }) {
     }
     e.active = true; e.dying = false; e.age = 0; e.placed = false; e.visible = false;
     e.style = style; e.speaker = line.speaker || ''; e.anchor = anchor;
+    // milestones and the narrator sit in the upper third, keeping the middle clear
+    e.fixed = style === 'big' || e.speaker === 'narrator';
     if (anchor && typeof anchor === 'object') { e.ax = anchor.x || 0; e.ay = anchor.y || 0; e.az = anchor.z || 0; }
     e.el.className = 'gp-ft ' + style;
     e.txt.textContent = line.text;
@@ -121,6 +123,12 @@ export function createFloatingText({ overlay, settings, max = 12 }) {
       e.age += dt;
       if (e.age > e.ttl + FADE_OUT) { e.active = false; e.el.style.display = 'none'; e.slot = -1; continue; }
       e.slot = -1;
+      if (e.fixed) {
+        const rise0 = Math.min(1, e.age / Math.max(0.5, e.ttl)) * u * 1.2;
+        e.slot = addLabel(L, W * 0.5, H * 0.27 - rise0, e.w, e.h, 5);
+        e.visible = e.slot >= 0;
+        continue;
+      }
       const ok = typeof e.anchor === 'object' && e.anchor
         ? (world.x = e.ax, world.y = e.ay, world.z = e.az, true)
         : ctx.resolve(e.anchor, e.style, world);

@@ -35,6 +35,7 @@ export function createNpcs(S) {
       px: +def.x || 0, py: y, pz: +def.z || 0, pyaw: +def.yaw || 0,
       anim: 'idle', animT: 0, mood: 'neutral',
       speakerId: def.speaker || null,
+      disguise: def.params?.disguise || def.disguise || null,
       behaviour: def.behaviour || 'idle',
       visible: def.visible !== false,
       speed: 0,

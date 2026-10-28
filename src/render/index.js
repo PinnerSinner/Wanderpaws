@@ -31,6 +31,7 @@ import { createClipRecorder } from './clip.js';
 import { createTitleStage } from './stages/title.js';
 import { createShowroomStage } from './stages/showroom.js';
 import { buildFallbackScenery } from './fallbackScenery.js';
+import { createProjectiles } from './projectiles.js';
 
 const SIM_DT = 1 / 60;
 
@@ -67,6 +68,8 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
   scene.add(weather.mesh);
   const birds = createBirds(THREE, { mats, max: 64 });
   scene.add(birds.mesh);
+  const projectiles = createProjectiles(THREE, { mats });
+  scene.add(projectiles.mesh);
   const stageRoot = new THREE.Group();
   stageRoot.name = 'stage-root';
   scene.add(stageRoot);
@@ -219,7 +222,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
 
   // ------------------------------------------------------------------ scenes
   function showScene(k, p = {}) {
-    if (k !== 'level') disposeLevel();
+    if (k !== 'level') { disposeLevel(); projectiles.sync(null, 1); }
     clearStage();
     particles.clear();
     floatingText.clear();
@@ -537,6 +540,8 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     level.items.sync(state.items, alpha, vdt, pPose, time, itemOpts);
     level.npcs.sync(state.npcs, alpha, dt, camera, pxPerRad, tier.npcCullPx);
     birds.sync(state.birds, alpha, 1);
+    projectiles.sync(state.projectiles, alpha);
+    projectiles.hazards(state.hazards, vdt, particles, level.heightAt);
     if (level.ghost) level.ghost.update(state.tick || 0, alpha, dt, null);
 
     // floating text: keep off the animal
@@ -600,6 +605,57 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     } catch (e) { console.warn('[render] screenshot failed', e); return null; }
   }
 
+  // ------------------------------------------------------------------ item thumbnails
+  // Small cached dataURLs of catalogue items for the Journal (transparent background).
+  const thumbCache = new Map();
+  let thumb = null;
+  function thumbnail(typeId, px = 96) {
+    const key = typeId + '@' + px;
+    if (thumbCache.has(key)) return thumbCache.get(key);
+    if (typeof document === 'undefined') return null;
+    try {
+      if (!thumb || thumb.px !== px) {
+        const sc = new THREE.Scene();
+        sc.add(new THREE.HemisphereLight('#fff6ea', '#c9b7a6', 2.2));
+        const d = new THREE.DirectionalLight('#fff1d8', 2.6); d.position.set(2, 4, 3); sc.add(d);
+        const rt = new THREE.WebGLRenderTarget(px, px, { samples: 4 });
+        rt.texture.colorSpace = THREE.SRGBColorSpace;
+        const cv = document.createElement('canvas'); cv.width = cv.height = px;
+        thumb = { px, scene: sc, cam: new THREE.PerspectiveCamera(30, 1, 0.01, 100), rt, cv, ctx: cv.getContext('2d'), buf: new Uint8Array(px * px * 4), img: cv.getContext('2d').createImageData(px, px) };
+      }
+      let obj = WorldMeshes.buildItemMesh ? WorldMeshes.buildItemMesh(THREE, mats, typeId) : null;
+      if (!obj) return null;
+      mats.sanitize(obj);
+      thumb.scene.add(obj);
+      const box = new THREE.Box3().setFromObject(obj);
+      const c = box.getCenter(new THREE.Vector3());
+      const r = Math.max(0.05, box.getSize(new THREE.Vector3()).length() * 0.5);
+      const dist = r / Math.sin((30 * Math.PI) / 360) * 1.05;
+      thumb.cam.position.set(c.x + dist * 0.55, c.y + dist * 0.42, c.z + dist * 0.72);
+      thumb.cam.lookAt(c);
+      thumb.cam.updateMatrixWorld();
+      const prevT = renderer.getRenderTarget();
+      const prevA = renderer.getClearAlpha();
+      const prevC = renderer.getClearColor(new THREE.Color());
+      renderer.setRenderTarget(thumb.rt);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
+      renderer.render(thumb.scene, thumb.cam);
+      renderer.readRenderTargetPixels(thumb.rt, 0, 0, px, px, thumb.buf);
+      renderer.setRenderTarget(prevT);
+      renderer.setClearColor(prevC, prevA);
+      thumb.scene.remove(obj);
+      obj.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+      // flip vertically into the canvas
+      const row = px * 4;
+      for (let y = 0; y < px; y++) thumb.img.data.set(thumb.buf.subarray((px - 1 - y) * row, (px - y) * row), y * row);
+      thumb.ctx.putImageData(thumb.img, 0, 0);
+      const url = thumb.cv.toDataURL('image/png');
+      thumbCache.set(key, url);
+      return url;
+    } catch (e) { console.warn('[render] thumbnail failed', typeId, e); return null; }
+  }
+
   // ------------------------------------------------------------------ boot
   applyTier(tierId);
   if (typeof window !== 'undefined') window.addEventListener('orientationchange', () => setTimeout(resize, 200));
@@ -626,6 +682,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
       zoom(f) { photoZoom = Math.max(0.35, Math.min(3, photoZoom * f)); },
     },
     screenshot,
+    thumbnail,
     clip: {
       get supported() { return clip.supported; },
       start: () => clip.start(),
@@ -649,6 +706,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
       clearStage();
       titleStage?.dispose(); showroomStage?.dispose();
       if (hero) { try { hero.view.dispose?.(); } catch { /* ignore */ } }
+      projectiles.dispose(); if (thumb) thumb.rt.dispose();
       effects.dispose(); particles.dispose(); weather.dispose(); birds.dispose(); sky.dispose();
       floatingText.dispose(); post.dispose(); mats.dispose();
       blobGeo.dispose(); blobMat.dispose();
@@ -666,7 +724,7 @@ function createNullRenderer(canvas) {
     showScene: noop, setLook: noop, frame: noop, getCameraYaw: () => 0, addLook: noop,
     floatingText: { add: noop }, enterPhoto: noop, exitPhoto: noop, isPhoto: () => false,
     photo: { filters: ['none'], filter: 'none', setFilter: noop, cycleFilter: () => 'none', zoom: noop },
-    screenshot: () => null, clip: { supported: false, start: noop, save: async () => null },
+    screenshot: () => null, thumbnail: () => null, clip: { supported: false, start: noop, save: async () => null },
     setQuality: noop, quality: 'low', stats: () => ({ fps: 0, drawCalls: 0, triangles: 0, frameMs: 0 }), resize: noop, dispose: noop,
   };
 }
