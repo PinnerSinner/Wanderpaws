@@ -215,3 +215,49 @@ test('pool: per-tier caps hold 300 / 1000 / 2500 under a burst storm', () => {
     assert.equal(pool.alive(1), cap);
   }
 });
+
+test('bake: wmBlink materials keep their own group and the blink attribute', () => {
+  const mats = createMaterials(THREE, fakeSettings());
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(), mats.toon('#ff0000')));
+  const led = new THREE.MeshBasicMaterial({ vertexColors: true });
+  led.userData.wmBlink = true;
+  const lg = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+  const n = lg.getAttribute('position').count;
+  lg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+  lg.setAttribute('blink', new THREE.BufferAttribute(new Float32Array(n * 2).fill(2), 2));
+  g.add(new THREE.Mesh(lg, led));
+  const baked = bakeObject(THREE, g, mats);
+  assert.equal(baked.materials.length, 2);
+  const bl = baked.geometry.getAttribute('blink');
+  assert.ok(bl, 'blink copied');
+  let twos = 0;
+  for (let i = 0; i < bl.count; i++) if (bl.getX(i) === 2) twos++;
+  assert.equal(twos, n);
+});
+
+test('npcs: invisible npcs are skipped, human flag picks the builder', async () => {
+  const { createNpcLayer } = await import('../../src/render/actors.js');
+  const mats = createMaterials(THREE, fakeSettings());
+  let humans = 0, critters = 0;
+  const layer = createNpcLayer(THREE, {
+    mats,
+    buildHuman: () => { humans++; const o = new THREE.Group(); o.add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.8, 0.3))); return { object3d: o, update() {} }; },
+    createCritterView: () => { critters++; const o = new THREE.Group(); o.add(new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3))); return { object3d: o, update() {} }; },
+    humanKinds: ['jogger'], critterKinds: ['pigeon'],
+  });
+  const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+  cam.position.set(0, 2, -5);
+  const npcs = [
+    { id: 'a', kind: 'jogger', x: 0, y: 0, z: 0, yaw: 0 },
+    { id: 'b', kind: 'pigeon', x: 1, y: 0, z: 0, yaw: 0, visible: false },
+    { id: 'c', kind: 'cyclist', human: true, x: 2, y: 0, z: 0, yaw: 0 },
+  ];
+  layer.sync(npcs, 1, 1 / 60, cam, 800, 2);
+  assert.equal(humans, 2);
+  assert.equal(critters, 0);
+  assert.equal(layer.count, 2);
+  const out = {};
+  assert.equal(layer.find('a', out), true);
+  assert.ok(out.y > 1.8);
+});
