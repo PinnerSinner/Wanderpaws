@@ -318,7 +318,8 @@ export function playerItemContacts(S, dt) {
     const d = Math.sqrt(d2) || 1e-4;
     const nx = dx / d, nz = dz / d;
     const vrel = p.vx * nx + p.vz * nz;
-    if (itop - p.y <= D.stepUp) {
+    const blocked = S.typeBlocked[I.typeIndex[i]] === 1;
+    if (itop - p.y <= D.stepUp && !blocked) {
       // low: walk over it with a little wobble
       if (d < rr && speed > p.size * 0.3 && s === IS_IDLE) S.items.wobble(i, 0.8 + speed / Math.max(0.2, p.size) * 0.15, p.vx, p.vz);
       continue;
