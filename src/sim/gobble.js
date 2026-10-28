@@ -197,7 +197,7 @@ export function completeGobble(S, i) {
     if (R.goldenFound.indexOf(type) < 0) R.goldenFound.push(type);
     S.emit({ type: EV.GOLDEN, itemType: type });
   }
-  if (type === 'teamug' || type === 'teaurn') S.buff('tea', TUNE.teaTime);
+  if ((type === 'teamug' || type === 'teaurn') && !S.eggTea) S.buff('tea', TUNE.teaTime);
   if (S.onGobble) S.onGobble(i, type);
   checkMilestones(S);
 }
@@ -328,7 +328,7 @@ export function playerItemContacts(S, dt) {
       continue;
     }
     const big = I.size[i];
-    const knockable = I.almost[i] || (heavy && big <= p.size * 1.2) || (rolling && big <= p.size * 1.1) || (S.sigMods.immune && big <= p.size * 0.9);
+    const knockable = I.almost[i] || big <= p.size || (S.typeBlocked[I.typeIndex[i]] && big <= p.size * 1.5) || (heavy && big <= p.size * 1.2) || (rolling && big <= p.size * 1.1) || (S.sigMods.immune && big <= p.size * 0.9);
     if (knockable) {
       if (vrel > 0.05 * top) {
         const k = Math.min(1.4, p.size / Math.max(0.05, big)) * (heavy || rolling ? 1.5 : 1);

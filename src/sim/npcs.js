@@ -50,6 +50,7 @@ export function createNpcs(S) {
       perchY, fly: 0, flyFrom: null, state: 0, hazard: -1, throwT: +(params.throwEvery || 9),
       holdT: 0, hopT: 0, throwing: 0, rngA: 0, fx: 0, fz: 0, fy: 0, perches: null,
     };
+    if (n.behaviour === 'marcoJog') n.behaviour = 'marco';
     if (n.behaviour === 'react' && params.react) n.react = params.react;
     if (perchY > 0.5) n.solid = false;
     if (n.behaviour === 'gerald' || kind === 'gerald') n.behaviour = n.behaviour === 'idle' ? 'gerald' : n.behaviour;

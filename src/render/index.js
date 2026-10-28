@@ -194,6 +194,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
       view = { object3d: g, update() {}, setLook() {}, setEmotion() {}, dispose() { m.geometry.dispose(); } };
     }
     setShadows(view.object3d, true, true);
+    mats.sanitize(view.object3d);
     view.object3d.name = 'hero:' + species.id;
     hero = { view, speciesId: species.id, species };
     heroFake.sig.kind = species.signature?.kind || null;
@@ -273,6 +274,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
       if (o.castShadow === false && o.userData.noShadow) return;
       o.castShadow = r < 60;
     });
+    mats.sanitize(scenery.group);
     stageRoot.add(scenery.group);
     const heightAt = typeof world.heightAt === 'function' ? world.heightAt : null;
     mats.setHeightField(heightAt, padBounds(world.bounds, 60), 160);

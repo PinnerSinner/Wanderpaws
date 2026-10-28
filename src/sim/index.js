@@ -159,6 +159,7 @@ export function createSim(opts = {}) {
   player.reach = S.derived.reachBase;
   S.derived.top = topSpeedFor(player.size, species.stats.speed);
 
+  S.eggTea = (world.eggs || []).some((e) => e && e.id === 'G8');
   S.eggs = createEggs(S);
   S.emit({ type: EV.INTRO, worldId: world.id, mode, speciesId: species.id });
   dispatchEggs(S, 0);
@@ -176,6 +177,7 @@ export function createSim(opts = {}) {
     R.landedThisTick = false;
     p.px = p.x; p.py = p.y; p.pz = p.z; p.pyaw = p.yaw;
     S.terrain.update(st.time);
+    S.col.updateFlags(st.flags);
     st.tide = S.terrain.tide;
 
     resetSigMods(S.sigMods);

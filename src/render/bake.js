@@ -85,7 +85,7 @@ export function bakeObject(THREE, root, mats) {
     let mat;
     if (b.plain) mat = mats.itemFx(mats.toon('#ffffff', { vertexColors: true }));
     else if (b.material.name === 'gp-toon' || b.material.name === 'gp-sway') mat = mats.itemFx(b.material);
-    else mat = safeMaterial(b.material);
+    else { mat = safeMaterial(b.material); mats.sanitize?.({ traverse: (f) => f({ material: mat }) }); }
     materials.push(mat);
   }
 

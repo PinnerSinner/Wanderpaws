@@ -47,6 +47,11 @@ export function createMaterials(THREE, settings) {
   }
 
   // ------------------------------------------------------------------ toon
+  // An explicit program key: three's default key is onBeforeCompile.toString(),
+  // and minified closures from different modules can stringify identically,
+  // which would share the wrong program. Variants differ by defines.
+  const toonKey = () => 'gp-toon-v1';
+
   function patchToon(shader, mat) {
     const u = shader.uniforms;
     u.gpTime = uniforms.time;
@@ -191,6 +196,7 @@ outgoingLight *= gpTint;
     if (o.rim === false) m.defines.GP_NORIM = '';
     if (o.rimStrength != null) m.userData.gpRim = { value: o.rimStrength };
     m.onBeforeCompile = (shader) => patchToon(shader, m);
+    m.customProgramCacheKey = toonKey;
     return m;
   }
 
@@ -225,6 +231,7 @@ outgoingLight *= gpTint;
     m.defines = { ...(base.defines || {}), GP_ITEMFX: '' };
     m.userData = { ...base.userData };
     m.onBeforeCompile = (shader) => patchToon(shader, m);
+    m.customProgramCacheKey = toonKey;
     m.name = (base.name || 'gp') + '-fx';
     itemCache.set(base, m);
     owned.add(m);
@@ -480,6 +487,32 @@ void main() {
   applyColourBlind();
   const unsub = settings?.subscribe?.((k) => { if (k === 'colourBlind') applyColourBlind(); });
 
+  // Make foreign materials safe to render: unique program keys for custom
+  // onBeforeCompile hooks (minifier-proof), and no stray 'emissive' on basic
+  // materials (three's uniform refresh would read a missing uniform).
+  const fnIds = new WeakMap();
+  let fnNext = 1;
+  const defaultKey = THREE.Material.prototype.customProgramCacheKey;
+  function sanitizeMaterial(m) {
+    if (!m || m.userData.gpSanitised) return;
+    m.userData.gpSanitised = true;
+    if (m.isMeshBasicMaterial && 'emissive' in m) { delete m.emissive; delete m.emissiveIntensity; }
+    const obc = m.onBeforeCompile;
+    if (typeof obc === 'function' && m.customProgramCacheKey === defaultKey) {
+      let id = fnIds.get(obc);
+      if (!id) { id = fnNext++; fnIds.set(obc, id); }
+      const src = obc.toString();
+      m.customProgramCacheKey = () => src + '|gpfn' + id;
+    }
+  }
+  function sanitize(root) {
+    if (!root) return;
+    root.traverse((o) => {
+      if (!o.material) return;
+      if (Array.isArray(o.material)) o.material.forEach(sanitizeMaterial); else sanitizeMaterial(o.material);
+    });
+  }
+
   function dispose() {
     for (const m of cache.values()) m.dispose();
     for (const m of owned) m.dispose();
@@ -491,7 +524,7 @@ void main() {
   }
 
   return {
-    uniforms, toon, sway, water, outline, glow,
+    uniforms, toon, sway, water, outline, glow, sanitize,
     // render-internal extras
     itemFx, bird, setHeightField, applyColourBlind, dispose,
     get cacheSize() { return cache.size; },

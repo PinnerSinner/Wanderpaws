@@ -183,6 +183,7 @@ export function createTitleStage(THREE, { mats, buildSceneryMesh, buildItemMesh,
   const coco = tryItem('coconut');
   if (coco) { coco.position.set(2.5, titleHeight(2.5, 1.6), 1.6); group.add(coco); }
 
+  mats.sanitize?.(group);
   group.traverse((o) => { if (o.isMesh && o !== terrain && o !== sea) { o.castShadow = true; o.receiveShadow = true; } });
 
   const hero = { x: 3.6, z: 0.2, yaw: -2.75 };

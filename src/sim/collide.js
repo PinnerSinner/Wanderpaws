@@ -25,6 +25,8 @@ export function createColliders(world, terrain, extra = []) {
   const pass = new Uint8Array(n);
   const enabled = new Uint8Array(n).fill(1);
   const tag = new Array(n).fill(null);
+  const openFlag = new Array(n).fill(null);
+  const flagged = [];
 
   for (let i = 0; i < n; i++) {
     const c = src[i];
@@ -42,6 +44,7 @@ export function createColliders(world, terrain, extra = []) {
     top[i] = b0 + Math.max(0.01, +c.h || 1);
     pass[i] = PASS_CODES[c.pass] || 0;
     tag[i] = c.tag || c.id || null;
+    if (c.openFlag) { openFlag[i] = c.openFlag; flagged.push(i); }
   }
 
   // Grid
@@ -189,6 +192,9 @@ export function createColliders(world, terrain, extra = []) {
   return {
     count: n, kind, cx, cz, hw, hd, rad, cs, sn, base, top, pass, enabled, tag, bound, maxBound,
     cell, query, hits, closest, resolve, supportAt, containing,
+    openFlag, flagged,
+    // colliders with openFlag are solid until flags[openFlag] is truthy
+    updateFlags(flags) { for (let k = 0; k < flagged.length; k++) { const i = flagged[k]; enabled[i] = flags[openFlag[i]] ? 0 : 1; } },
     setEnabledByTag(t, on) { for (let i = 0; i < n; i++) if (tag[i] === t) enabled[i] = on ? 1 : 0; },
   };
 }

@@ -111,7 +111,7 @@ export function createAnimalView({ THREE, mats, species, look, quality = 'high' 
       rig.update(player, dt);
       applyPose();
       extras.update(rig.pose, dt);
-      acc.update(rig.pose, dt);
+      acc.update(rig.pose, dt, rig.core);
     },
     setLook(l) {
       const next = validateLook(mergeLook(sp, l), sp.defaults);

@@ -62,6 +62,7 @@ export function createNpcLayer(THREE, { mats, buildHuman, createCritterView, hum
       view = { object3d: g, update() {}, dispose() { m.geometry.dispose(); } };
     }
     setShadows(view.object3d, shadows, false);
+    mats.sanitize?.(view.object3d);
     group.add(view.object3d);
     const box = new THREE.Box3().setFromObject(view.object3d);
     const height = Number.isFinite(box.max.y) ? Math.max(0.2, box.max.y - Math.min(0, box.min.y)) : (human ? 1.8 : 0.5);

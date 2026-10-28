@@ -154,14 +154,15 @@ export const w1 = {
     b.ball(0.35, '#ff5040', { x: -1.0, y: 3.6, z: 1.35, sy: 1.0, seg: 8 }); // a lifebuoy-red rescue float
   },
 
-  kioskbig(b) {
-    const prev = b.push({ m: new (b._THREE_Matrix4 || Object)() });
-    b.pop(prev);
+  kioskbig(b, ctx) {
+    const prev = b.push({ m: new ctx.THREE.Matrix4().makeScale(1.1, 1.08, 1.1) });
     items1.kiosk(b);
+    b.pop(prev);
   },
 
   sugarloaf(b, ctx) {
     const pal = ctx.palette;
+    const prevL = b.push({ layer: 'backdrop' });
     const rock = (x, y, z, wx, wy, wz, nx, ny) => (ny > 0.55 && wy < 150 ? rgb('#5a9a4a') : mixRgb('#8a8a7a', '#a8a090', smooth(-0.5, 0.5, noise2(wx * 0.05, wy * 0.04))));
     b.lathe([[0, 0], [70, 0], [76, 30], [72, 90], [58, 150], [38, 195], [14, 218], [0, 222]], '#8a8a7a', { x: 30, seg: 22, sx: 0.85, df: lumpy(0.04, 0.02, 3), cf: hazeCf(rock, pal, 0.5) });
     b.lathe([[0, 0], [60, 0], [56, 30], [40, 62], [16, 80], [0, 84]], '#7a8a6a', { x: -90, z: 30, seg: 16, df: lumpy(0.06, 0.03, 9), cf: hazeCf((x, y, z, wx, wy, wz, nx, ny) => (ny > 0.4 ? rgb('#5a9a4a') : rgb('#8a8a7a')), pal, 0.5) });
@@ -169,9 +170,7 @@ export const w1 = {
     // the cable car line between the two peaks
     b.rod([-90, 82, 30], [12, 205, 0], 0.6, '#5a5a5a', { seg: 3, layer: 'backdrop', cf: hazeCf('#5a5a5a', pal, 0.45, false) });
     b.box(5, 4, 4, '#e8473a', { x: -40, y: 140, z: 15, layer: 'backdrop', cf: hazeCf('#e8473a', pal, 0.35) });
-    for (const L of b.layers.values()) if (L.name === 'main') { L.name = 'backdrop'; }
-    const main = b.layers.get('main');
-    if (main) { b.layers.delete('main'); const bd = b.layers.get('backdrop'); if (bd) { mergeLayer(bd, main); } else b.layers.set('backdrop', main); }
+    b.pop(prevL);
   },
 
   coconutstall(b) {
