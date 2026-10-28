@@ -10,6 +10,8 @@
 //   extraIdle the species-specific idle played for idleAnim === 'species'
 //   gaitFreq  stride frequency multiplier   snap   head-turn snappiness
 
+import './copy.js';
+
 const look = (o) => ({
   base: '#e8c27a', secondary: '#c9a05a', belly: '#f3dca6', tips: '#c9a05a',
   eyes: '#5a3a1e', nose: '#2a1d17',
@@ -302,7 +304,7 @@ export const SPECIES = {
       idleBias: { sniff: 0.5, sit: 2, scratch: 1, yawn: 1, look: 1.5, playbow: 0.5, shake: 0.6, lie: 1.5, species: 2.5 },
     },
     hitbox: { radius: 0.36 },
-    defaults: { base: '#3b4a6b', secondary: '#2c3854', belly: '#c9d6f2', tips: '#5ef0c2', eyes: '#5ef0c2', nose: '#5ef0c2', pattern: 'stripes', patternColor: '#5ef0c2', patternAmount: 0.35 },
+    defaults: { base: '#3b4a6b', secondary: '#2c3854', belly: '#c9d6f2', tips: '#5ef0c2', eyes: '#5ef0c2', nose: '#5ef0c2', pattern: 'stripes', patternColor: '#5ef0c2', patternAmount: 0.2 },
     presets: [
       { id: 'stock', look: { base: '#3b4a6b', secondary: '#2c3854', belly: '#c9d6f2', tips: '#5ef0c2', eyes: '#5ef0c2', nose: '#5ef0c2', pattern: 'stripes', patternColor: '#5ef0c2' } },
       { id: 'beige', look: { base: '#e8e0cc', secondary: '#d0c6ae', belly: '#f5f0e2', tips: '#4ae05a', eyes: '#4ae05a', nose: '#4ae05a', pattern: 'stripes', patternColor: '#b8ae96', patternAmount: 0.3 } },

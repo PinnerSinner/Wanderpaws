@@ -7,7 +7,7 @@ import { makeParts } from '../parts.js';
 export function buildHopper(THREE, S, B, bones, plan, species, q) {
   const X = makeParts(THREE, S, B, bones, q);
   const { wp, w2, seg, ss, M4 } = X;
-  const frog = species.id === 'frog';
+  const frog = !plan.ear;
   const body = wp('body'), hips = wp('hips'), chest = wp('chest'), head = wp('head');
   const hr = plan.headR;
 

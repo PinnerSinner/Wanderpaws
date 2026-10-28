@@ -7,7 +7,7 @@ import { icon } from './icons.js';
 import { EV } from '../core/events.js';
 import { t } from '../core/copy/index.js';
 import { formatSizeUI, formatClock, milestoneProgress, timerWarmth, mixColour, newStars, formatInt } from './logic.js';
-import { safe, getWorldData, worldName } from './data.js';
+import { safe, getWorldData } from './data.js';
 import { starsEl } from './kit.js';
 
 const RING_R = 44;
@@ -84,7 +84,7 @@ export function createHUD(ctx) {
     if (kind === 'go' && goEl && goEl.classList.contains('gp-burst') && goTimer > 0.6) return;
     if (goEl) goEl.remove();
     if (kind === 'ready') {
-      goEl = h('div', { class: 'gp-go gp-ready gp-outline' }, t('ui.hud.ready'), h('small', null, worldName(app.run?.worldId || 'w1')));
+      goEl = h('div', { class: 'gp-go gp-ready gp-outline' }, t('ui.hud.ready'));
     } else if (kind === 'go') {
       if (goEl && goEl.classList.contains('gp-burst') && goTimer > 0.6) return;
       goEl = h('div', { class: 'gp-go gp-burst' }, t('ui.hud.go'));

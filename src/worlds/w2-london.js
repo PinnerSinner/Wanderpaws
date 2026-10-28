@@ -271,7 +271,7 @@ export const W2 = {
   ],
   eggs: makeEggsW2(P),
   goals: {
-    start: 0.4, goal: 8, stretch: 12, timer: 330, par: 280, growthK: 1.5,
+    start: 0.4, goal: 8, stretch: 14, timer: 330, par: 280, growthK: 1.35,
     milestones: [0.8, 1.5, 3, 5, 10],
     star3: { kind: 'collectAll', type: 'teamug', count: 12 },
   },

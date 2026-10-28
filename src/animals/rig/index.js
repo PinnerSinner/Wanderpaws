@@ -37,8 +37,9 @@ export function getSkeleton(speciesId) {
 
 export function createRig(speciesOrId) {
   const species = typeof speciesOrId === 'string' ? getSpecies(speciesOrId) : (speciesOrId || getSpecies('oli'));
-  const plan = getPlan(species.id);
-  const skeleton = getSkeleton(species.id);
+  const planId = species.planId || species.id;
+  const plan = getPlan(planId);
+  const skeleton = getSkeleton(planId);
   const pose = createPose(skeleton);
   const core = createCore(species, plan);
   const make = SOLVERS[plan.archetype] || createQuadruped;

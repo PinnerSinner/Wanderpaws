@@ -56,9 +56,41 @@ const STYLES = {
   },
 };
 STYLES.routercat = { ...STYLES.cat, ear: 'antenna', router: true };
+STYLES.c_kitten = { ...STYLES.cat, torso: { hipR: 0.12, waistR: 0.11, chestR: 0.13, chestRy: 0.14, len: [0.14, 0.12] } };
+STYLES.c_fox = {
+  ...STYLES.cat, torso: { hipR: 0.13, waistR: 0.12, chestR: 0.145, chestRy: 0.155, len: [0.17, 0.15] },
+  head: { sx: 1.1, sy: 0.92, sz: 0.95 }, muzzle: { y: -0.045, z: 0.12, rx: 0.05, ry: 0.04, rz: 0.08, region: 'belly' },
+  nose: { r: 0.02, y: 0.0, z: 0.2, sx: 1.2, sy: 0.9 }, whiskers: false, fluffCheeks: true, tail: 'fluffy', ear: 'pointy',
+  eye: { outward: 0.3, up: 0.05, irisFrac: 0.85, pupilFrac: 0.6, pupil: 'slit' },
+};
+STYLES.c_squirrel = {
+  ...STYLES.cat, torso: { hipR: 0.12, waistR: 0.1, chestR: 0.105, chestRy: 0.115, len: [0.12, 0.1] }, head: { sx: 1.05, sy: 0.95, sz: 1.0 },
+  muzzle: { y: -0.04, z: 0.09, rx: 0.045, ry: 0.035, rz: 0.04, region: 'belly' }, nose: { r: 0.014, y: 0.0, z: 0.135, sx: 1.3, sy: 0.9 },
+  whiskers: false, fluffCheeks: true, tail: 'fluffy', ear: 'pointy', eye: { outward: 0.5, up: 0.05, irisFrac: 0.9, pupilFrac: 0.7 },
+  legs: { fu: [0.03, 0.025], fl: [0.024, 0.022], hu: [0.05, 0.03], hl: [0.026, 0.024], paw: [0.03, 0.02, 0.04], haunch: 0.075 },
+};
+STYLES.c_marmoset = { ...STYLES.c_squirrel, tail: 'thin', ear: 'tuft', fluffCheeks: false, muzzle: { y: -0.04, z: 0.1, rx: 0.04, ry: 0.03, rz: 0.03, region: 'secondary' }, eye: { outward: 0.25, up: 0.05, irisFrac: 0.85, pupilFrac: 0.6 } };
+STYLES.c_sloth = {
+  ...STYLES.oli, torso: { hipR: 0.15, waistR: 0.14, chestR: 0.15, chestRy: 0.16, len: [0.17, 0.15], e: 2.2 }, head: { sx: 1.05, sy: 0.95, sz: 0.95 },
+  muzzle: { y: -0.04, z: 0.1, rx: 0.06, ry: 0.045, rz: 0.05, region: 'belly' }, nose: { r: 0.02, y: 0.0, z: 0.15, sx: 1.3, sy: 0.9 },
+  brow: false, slothFace: true, cheeks: 0, ear: 'round', tail: null,
+  legs: { fu: [0.04, 0.035], fl: [0.033, 0.03], hu: [0.045, 0.035], hl: [0.033, 0.03], paw: [0.035, 0.025, 0.045], haunch: 0.09, toenails: true },
+};
+STYLES.c_highlandcow = {
+  ...STYLES.capybara, torso: { hipR: 0.2, waistR: 0.2, chestR: 0.21, chestRy: 0.22, len: [0.2, 0.18], e: 2.2 }, head: { sx: 1.0, sy: 1.0, sz: 1.15, boxy: true },
+  muzzle: { y: -0.06, z: 0.15, rx: 0.095, ry: 0.065, rz: 0.075, region: 'secondary', boxy: true }, nose: { r: 0.04, y: 0.0, z: 0.225, sx: 1.6, sy: 0.7, nostrils: true, region: 'nose' },
+  eye: { outward: 0.6, up: 0.05, irisFrac: 0.85, pupilFrac: 0.7 }, horns: true, fringe: true, ear: 'cow', tail: 'rope', shaggy: true,
+  legs: { fu: [0.06, 0.05], fl: [0.048, 0.045], hu: [0.07, 0.05], hl: [0.048, 0.045], paw: [0.05, 0.035, 0.055], haunch: 0.13, toenails: true },
+};
+STYLES.c_haggis = {
+  ...STYLES.capybara, torso: { hipR: 0.17, waistR: 0.17, chestR: 0.17, chestRy: 0.17, len: [0.17, 0.15], e: 2 }, head: { sx: 1.0, sy: 0.95, sz: 1.0 },
+  muzzle: { y: -0.04, z: 0.1, rx: 0.06, ry: 0.045, rz: 0.05, region: 'secondary' }, nose: { r: 0.022, y: 0.0, z: 0.15, sx: 1.3, sy: 0.9, region: 'nose' },
+  eye: { outward: 0.35, up: 0.05, irisFrac: 0.85, pupilFrac: 0.65 }, ear: 'round', tail: 'thin', shaggy: true, fringe: true,
+  legs: { fu: [0.04, 0.035], fl: [0.033, 0.03], hu: [0.045, 0.035], hl: [0.033, 0.03], paw: [0.04, 0.025, 0.05], haunch: 0.08 },
+};
 
 export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
-  const st = STYLES[species.id] || STYLES.oli;
+  const st = STYLES[species.styleId || species.id] || STYLES.oli;
   const X = makeParts(THREE, S, B, bones, q);
   const { wp, w2, seg, ss, M4 } = X;
   const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -68,6 +100,7 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
   const bodyY = body.y;
 
   // --- torso: a loft, skinned hips -> chest, with a lighter belly and darker back
+  const shag = st.shaggy ? 0.012 : 0;
   const torso = S.loft(zBack, zFront, (t) => {
     const z = zBack + (zFront - zBack) * t;
     const a = Math.sin(Math.PI * Math.min(1, t)) ** 0.55;
@@ -82,6 +115,7 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
     if (n.y > 0.35) return ['base', 'secondary', ss(0.35, 0.95, n.y) * 0.8];
     return 'base';
   };
+  if (shag) { const pa = torso.getAttribute('position'); for (let i = 0; i < pa.count; i++) { const k = 1 + shag * 6 * Math.sin(pa.getX(i) * 90 + pa.getZ(i) * 70) * Math.sin(pa.getY(i) * 80); pa.setXYZ(i, pa.getX(i) * k, bodyY + (pa.getY(i) - bodyY) * k, pa.getZ(i)); } torso.computeVertexNormals(); }
   B.add(torso, { bone: 'root', tag: 'body', region: belly, weights: wHC });
   // chest fluff / bib in front
   const bib = S.ellipsoid(T.chestR * 0.82, T.chestRy * 0.85, 0.09, seg(14), seg(10));
@@ -122,6 +156,12 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
       bone: 'head', matrix: toHead, tag: 'head',
       region: (l, w, n) => {
         const ax = Math.abs(l.x) / hr, ly = l.y / hr, lz = l.z / hr;
+        if (st.slothFace) {
+          const mask = Math.exp(-((ax - 0.38) ** 2 + (ly - 0.1) ** 2 + (lz - 0.7) ** 2) / 0.05);
+          const face = ss(0.3, 0.7, lz);
+          if (mask > 0.3) return ['belly', 'tips', ss(0.3, 0.6, mask)];
+          return face > 0.01 ? ['base', 'belly', face] : 'base';
+        }
         if (st.pandaFace) {
           // white muzzle cheeks and eyebrow dots, dark tear stripes are the base
           const cheek = Math.exp(-((ax - 0.55) ** 2 + (ly + 0.25) ** 2 + (lz - 0.55) ** 2) / 0.07);
@@ -209,6 +249,15 @@ export function buildQuadruped(THREE, S, B, bones, plan, species, q) {
     B.add(g, { bone: 'head', tag: 'face', region: 'claw', pattern: false });
   }
 
+  if (st.horns) for (const s of [1, -1]) {
+    const pts = [[s * 0.1, 0.09, -0.02], [s * 0.2, 0.1, -0.01], [s * 0.27, 0.16, 0.01], [s * 0.28, 0.24, 0.02]];
+    B.add(S.tube(pts, [0.03, 0.024, 0.016, 0.006], 8, 2), { bone: 'head', tag: 'face', region: 'claw', pattern: false });
+  }
+  if (st.fringe) {
+    const g = S.blob(1, seg(16), seg(10), (v, d) => { v.set(d.x * hr * 1.15, d.y * hr * 0.55, d.z * hr * 0.5); v.multiplyScalar(1 + 0.12 * Math.sin(d.x * 17) * Math.sin(d.y * 11 + 1)); if (d.y < 0) v.y *= 1.2 + 0.4 * Math.abs(Math.sin(d.x * 9)); });
+    g.translate(0, plan.eye[1] + 0.03, Math.max(plan.eye[2] + 0.02, hr * H.sz * 0.98));
+    B.add(g, { bone: 'head', tag: 'face', region: (l, w, n) => ['base', 'secondary', 0.25 + 0.2 * Math.max(0, n.z)] });
+  }
   // --- ears
   buildEars(THREE, S, B, X, plan, st, hr);
 
@@ -369,6 +418,14 @@ function buildEars(THREE, S, B, X, plan, st, hr) {
         place(rim, 0.3, -m * 0.2 + Math.PI / 2 * 0);
         B.add(rim, { bone: 'root', tag: 'ear', weights, region: 'tips', pattern: false });
       }
+    } else if (kind === 'tuft') {
+      const g = S.blob(1, seg(10), seg(8), (v, d) => { v.set(d.x * 0.03, d.y * len * 0.7, d.z * 0.05); v.multiplyScalar(1 + 0.15 * Math.sin(d.y * 12 + d.z * 7)); });
+      place(g, 0.5, 0);
+      B.add(g, { bone: 'root', tag: 'ear', weights, region: 'tips', pattern: false });
+    } else if (kind === 'cow') {
+      const g = S.blob(1, seg(10), seg(8), (v, d) => { v.set(d.z * 0.015, d.y * len * 0.6, -d.x * 0.035); });
+      place(g, 0.5, 0);
+      B.add(g, { bone: 'root', tag: 'ear', weights, region: 'base' });
     } else if (kind === 'elephant') {
       const g = S.blob(1, seg(16), seg(12), (v, d) => {
         // a big flat fan, lobed at the bottom, along dir (the chain points sideways)

@@ -137,7 +137,7 @@ const cells = [];
 function addCell(kind, id, sc, angle, look) {
   const { scene, sun, stripes } = makeScene();
   let view;
-  if (kind === 'critter') view = createCritterView({ THREE, mats, kind: id, quality });
+  if (kind === 'critter') view = createCritterView({ THREE, mats, kind: id, quality, realScale: false, disguise: params.get('disguise') });
   else view = createAnimalView({ THREE, mats, species: getSpecies(id), look, quality });
   scene.add(view.object3d);
   const cam = new THREE.PerspectiveCamera(30, 1, 0.05, 50);

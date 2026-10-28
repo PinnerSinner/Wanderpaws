@@ -182,7 +182,72 @@ export const PLANS = {
 };
 PLANS.routercat = { ...PLANS.cat, ear: { ...PLANS.cat.ear, links: 2, len: 0.12, kind: 'antenna', stiff: 18 } };
 
+// --- critters (NPC animals). Same archetypes, their own proportions.
+const BIRD = {
+  archetype: 'waddler', upright: 0,
+  bodyY: 0.24, bodyR: 0.17, bodyH: 0.3,
+  hipJoint: V(0.06, -0.12, 0.0),
+  leg: { upper: 0.06, lower: 0.06, foot: 0.02, bend: 1, footLen: 0.08 },
+  wing: { anchor: V(0.145, 0.0, 0.04), dir: V(0.1, -0.25, -1), links: 2, len: 0.26, kind: 'wing' },
+  neck: { anchor: V(0, 0.08, 0.13), dir: V(0, 1, 0.35), links: 2, len: 0.1 },
+  headR: 0.11, headOff: V(0, 0.04, 0.02),
+  jaw: V(0, -0.02, 0.08), eye: V(0.065, 0.025, 0.05), eyeR: 0.032,
+  tail: { anchor: V(0, 0.03, -0.17), dir: V(0, 0.15, -1), links: 2, len: 0.14, rest: [0.1, 0.05], gravity: 0, stiff: 12, damp: 0.5, inertia: 0.5, thick: [0.06, 0.04] },
+  beak: { kind: 'cone', r: 0.022, len: 0.065 },
+  gait: { stride: 0.14, lift: 0.04, roll: 0.06 },
+};
+PLANS.c_pigeon = BIRD;
+PLANS.c_gull = { ...BIRD, bodyR: 0.17, wing: { ...BIRD.wing, len: 0.34 }, beak: { kind: 'cone', r: 0.022, len: 0.09 }, neck: { ...BIRD.neck, len: 0.08 } };
+PLANS.c_toucan = { ...BIRD, bodyR: 0.16, headR: 0.12, beak: { kind: 'toucan', r: 0.06, len: 0.24 }, tail: { ...BIRD.tail, len: 0.2, dir: V(0, -0.3, -1) } };
+PLANS.c_duckling = { ...PLANS.duck, bodyY: 0.22, bodyR: 0.17, headR: 0.15, neck: { ...PLANS.duck.neck, len: 0.08 }, eyeR: 0.042 };
+PLANS.c_fox = quad({
+  bodyY: 0.38, front: { upper: 0.15, lower: 0.15, foot: 0.045 }, hind: { upper: 0.17, lower: 0.15, foot: 0.045 },
+  headR: 0.15, eye: V(0.07, 0.035, 0.11), eyeR: 0.042, jaw: V(0, -0.05, 0.07),
+  ear: { anchor: V(0.08, 0.12, -0.02), dir: V(0.3, 1, 0), links: 2, len: 0.14, gravity: 0, stiff: 14, damp: 0.6, inertia: 0.25, kind: 'pointy' },
+  tail: { anchor: V(0, 0.05, -0.16), links: 6, len: 0.42, rest: [0.2, 0.0, -0.08, -0.06, 0, 0.06], gravity: 0.1, stiff: 7, damp: 0.5, inertia: 0.6, thick: [0.075, 0.06] },
+});
+PLANS.c_squirrel = quad({
+  bodyY: 0.3, hips: V(0, 0, -0.14), chest: V(0, 0.03, 0.12), front: { upper: 0.1, lower: 0.1, foot: 0.03 }, hind: { upper: 0.13, lower: 0.12, foot: 0.04 },
+  headR: 0.13, eye: V(0.07, 0.035, 0.08), eyeR: 0.04, neck: V(0, 0.08, 0.07),
+  ear: { anchor: V(0.06, 0.11, -0.02), dir: V(0.2, 1, -0.1), links: 2, len: 0.07, gravity: 0, stiff: 14, damp: 0.6, inertia: 0.3, kind: 'pointy' },
+  tail: { anchor: V(0, 0.06, -0.12), links: 6, len: 0.5, rest: [1.5, 0.5, 0.25, 0.0, -0.35, -0.6], gravity: 0, stiff: 7, damp: 0.5, inertia: 0.6, thick: [0.09, 0.08] },
+});
+PLANS.c_marmoset = quad({
+  bodyY: 0.3, hips: V(0, 0, -0.14), chest: V(0, 0.03, 0.12), front: { upper: 0.11, lower: 0.11, foot: 0.03 }, hind: { upper: 0.12, lower: 0.12, foot: 0.03 },
+  headR: 0.13, eye: V(0.055, 0.03, 0.1), eyeR: 0.042, neck: V(0, 0.08, 0.07),
+  ear: { anchor: V(0.11, 0.06, -0.02), dir: V(1, 0.5, -0.2), links: 2, len: 0.08, gravity: 0, stiff: 12, damp: 0.6, inertia: 0.3, kind: 'tuft' },
+  tail: { anchor: V(0, 0.05, -0.12), links: 7, len: 0.55, rest: [0.2, -0.2, -0.2, -0.1, 0, 0.1, 0.3], gravity: 0.3, stiff: 6, damp: 0.5, inertia: 0.6, thick: [0.035, 0.028] },
+});
+PLANS.c_sloth = quad({
+  bodyY: 0.34, front: { upper: 0.2, lower: 0.18, foot: 0.04 }, hind: { upper: 0.17, lower: 0.15, foot: 0.04 },
+  headR: 0.14, eye: V(0.055, 0.02, 0.12), eyeR: 0.034, jaw: V(0, -0.05, 0.08),
+  ear: { anchor: V(0.1, 0.05, -0.04), dir: V(1, 0.2, 0), links: 2, len: 0.03, gravity: 0, stiff: 14, damp: 0.6, inertia: 0.2, kind: 'round' },
+  tail: null, gait: { stride: 0.2, liftF: 0.06, liftH: 0.05, bob: 0.01 },
+});
+PLANS.c_highlandcow = quad({
+  bodyY: 0.47, hips: V(0, 0, -0.22), chest: V(0, 0.03, 0.18), hipJoint: V(0.13, -0.09, -0.02), shoulderJoint: V(0.13, -0.1, 0.02),
+  front: { upper: 0.17, lower: 0.16, foot: 0.05 }, hind: { upper: 0.18, lower: 0.16, foot: 0.05 },
+  neck: V(0, 0.06, 0.13), neckDir: 0.35, neckLen: 0.1, headR: 0.15, eye: V(0.075, 0.04, 0.155), eyeR: 0.034, jaw: V(0, -0.07, 0.1),
+  ear: { anchor: V(0.15, 0.03, -0.03), dir: V(1, 0.1, -0.2), links: 2, len: 0.08, gravity: 0.2, stiff: 9, damp: 0.5, inertia: 0.5, kind: 'cow' },
+  tail: { anchor: V(0, 0.06, -0.21), links: 5, len: 0.3, rest: [-1.1, -0.2, 0, 0, 0], gravity: 0.5, stiff: 8, damp: 0.5, inertia: 0.6, thick: [0.025, 0.02] },
+  gait: { stride: 0.3, liftF: 0.06, liftH: 0.05, bob: 0.012 },
+});
+PLANS.c_haggis = quad({
+  bodyY: 0.27, hips: V(0, 0, -0.12), chest: V(0, 0, 0.12), hipJoint: V(0.11, -0.09, 0), shoulderJoint: V(0.11, -0.09, 0.0),
+  front: { upper: 0.1, lower: 0.09, foot: 0.04 }, hind: { upper: 0.1, lower: 0.09, foot: 0.04 },
+  neck: V(0, 0.05, 0.12), neckDir: 0.3, neckLen: 0.05, headR: 0.12, eye: V(0.06, 0.04, 0.09), eyeR: 0.04, jaw: V(0, -0.05, 0.06),
+  ear: { anchor: V(0.08, 0.09, -0.03), dir: V(0.6, 1, -0.2), links: 2, len: 0.06, gravity: 0, stiff: 12, damp: 0.6, inertia: 0.3, kind: 'round' },
+  tail: { anchor: V(0, 0.04, -0.17), links: 3, len: 0.1, rest: [0.6, 0.2, 0], gravity: 0, stiff: 10, damp: 0.5, inertia: 0.5, thick: [0.03, 0.02] },
+  shortSide: 0.55,
+});
+PLANS.c_kitten = { ...PLANS.cat, bodyY: 0.35, headR: 0.17, front: { ...PLANS.cat.front, upper: 0.14, lower: 0.13 }, hind: { ...PLANS.cat.hind, upper: 0.15, lower: 0.14 }, eye: V(0.07, 0.03, 0.115), eyeR: 0.055, tail: { ...PLANS.cat.tail, len: 0.3, links: 5, rest: [0.9, 0.3, 0.1, -0.1, -0.2] } };
+PLANS.c_magpenguin = PLANS.penguin;
+PLANS.c_frog = PLANS.frog;
+PLANS.c_gerald = BIRD;
+PLANS.c_nigel = BIRD;
+
 export function getPlan(speciesId) { return PLANS[speciesId] || PLANS.oli; }
+export function hasPlan(id) { return !!PLANS[id]; }
 
 // ---------------------------------------------------------------------------
 // Skeleton builders
@@ -242,10 +307,12 @@ export function buildSkeleton(plan) {
     sk.add('body', 'root', [0, p.bodyY, p.bodyZ || 0], 'YXZ');
     sk.add('hips', 'body', p.hips, 'YXZ');
     sk.add('chest', 'body', p.chest, 'YXZ');
+    const ss = p.shortSide || 1;
+    const sc = (l) => (ss === 1 ? l : { ...l, upper: l.upper * ss, lower: l.lower * ss });
     addLeg(sk, 'HL', 'hips', p.hipJoint, p.hind, 1);
-    addLeg(sk, 'HR', 'hips', p.hipJoint, p.hind, -1);
+    addLeg(sk, 'HR', 'hips', p.hipJoint, sc(p.hind), -1);
     addLeg(sk, 'FL', 'chest', p.shoulderJoint, p.front, 1);
-    addLeg(sk, 'FR', 'chest', p.shoulderJoint, p.front, -1);
+    addLeg(sk, 'FR', 'chest', p.shoulderJoint, sc(p.front), -1);
     if (p.tail) addChain(sk, 'tail', 'hips', p.tail);
     sk.add('neck', 'chest', p.neck, 'YXZ');
     sk.add('head', 'neck', [0, Math.sin(p.neckDir) * p.neckLen, Math.cos(p.neckDir) * p.neckLen], 'YXZ');

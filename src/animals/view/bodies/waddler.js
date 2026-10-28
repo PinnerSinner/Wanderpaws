@@ -63,7 +63,28 @@ export function buildWaddler(THREE, S, B, bones, plan, species, q) {
   // beak / bill
   {
     const jaw = wp('jaw');
-    if (duck) {
+    if (plan.beak && plan.beak.kind === 'toucan') {
+      const bk = plan.beak;
+      const up = S.blob(1, seg(16), seg(10), (v, d) => { const t = (d.z + 1) / 2; v.set(d.x * bk.r * 0.75 * (1 - t * 0.6), d.y * bk.r * (1 - t * 0.55) - t * t * 0.03, d.z * bk.len * 0.5); });
+      up.translate(0, -0.005, hr * 0.8 + plan.beak.len * 0.45);
+      B.add(up, { bone: 'head', tag: 'face', region: (l, w, n) => (l.z > hr * 0.8 + bk.len * 0.75 ? 'pupil' : l.z > hr * 0.8 + bk.len * 0.3 ? ['nose', 'tips', ss(hr + bk.len * 0.3, hr + bk.len * 0.7, l.z)] : 'nose'), pattern: false });
+      const lo = S.blob(1, seg(12), seg(6), (v, d) => { v.set(d.x * bk.r * 0.6, d.y * 0.012, d.z * bk.len * 0.42); });
+      lo.translate(0, -(jaw.y - head.y) - 0.04, -(jaw.z - head.z) + hr * 0.8 + bk.len * 0.4);
+      B.add(lo, { bone: 'jaw', tag: 'face', region: 'nose', pattern: false });
+    } else if (plan.beak) {
+      const bk = plan.beak;
+      const up = S.cone(bk.r, bk.len, seg(8));
+      up.rotateX(Math.PI / 2); up.scale(0.85, 0.7, 1);
+      up.translate(0, -0.012, hr * 0.85 + bk.len * 0.45);
+      B.add(up, { bone: 'head', tag: 'face', region: 'nose', pattern: false });
+      const lo = S.cone(bk.r * 0.7, bk.len * 0.8, seg(6));
+      lo.rotateX(Math.PI / 2); lo.scale(0.8, 0.5, 1);
+      lo.translate(0, -(jaw.y - head.y) - 0.03, -(jaw.z - head.z) + hr * 0.85 + bk.len * 0.36);
+      B.add(lo, { bone: 'jaw', tag: 'face', region: 'nose', pattern: false });
+      // a little cere bump (pigeons)
+      const ce = S.ellipsoid(bk.r * 0.6, bk.r * 0.4, bk.r * 0.6, 6, 4); ce.translate(0, 0.0, hr * 0.88);
+      B.add(ce, { bone: 'head', tag: 'face', region: 'white', pattern: false });
+    } else if (duck) {
       const up = S.blob(1, seg(14), seg(8), (v, d) => { v.set(d.x * 0.062 * (1 + 0.2 * Math.max(0, d.z)), d.y * 0.024, d.z * 0.09); });
       up.translate(0, -0.02, hr * 0.88 + 0.05);
       B.add(up, { bone: 'head', tag: 'face', region: 'nose', pattern: false });
@@ -88,6 +109,13 @@ export function buildWaddler(THREE, S, B, bones, plan, species, q) {
         B.add(tuft, { bone: 'head', tag: 'face', region: 'tips', pattern: false });
       }
     }
+  }
+  if (species.smug) for (const s of [1, -1]) {
+    // Gerald's eyebrows: one cocked, permanently pleased with himself
+    const g = S.ellipsoid(plan.eyeR * 0.95, plan.eyeR * 0.24, plan.eyeR * 0.45, 10, 6);
+    g.rotateZ(s * (s > 0 ? 0.45 : -0.15));
+    g.translate(s * plan.eye[0] * 1.05, plan.eye[1] + plan.eyeR * (s > 0 ? 1.35 : 1.0), plan.eye[2] + plan.eyeR * 0.1);
+    B.add(g, { bone: 'head', tag: 'face', region: 'pupil', pattern: false });
   }
   for (const s of ['L', 'R']) X.eye(s, { r: plan.eyeR, outward: duck ? 0.75 : 0.42, up: 0.05, irisFrac: 0.82, pupilFrac: 0.7, lidRegion: duck ? 'secondary' : 'base', white: 'white' });
 

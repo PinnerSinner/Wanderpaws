@@ -18,6 +18,7 @@ export function createSerpent(core, plan, skel, pose) {
   const seg = plan.segLen;
   const hx = new Float64Array(N), hz = new Float64Array(N), hs = new Float64Array(N);
   const sx = new Float64Array(segs), sz = new Float64Array(segs), sOff = new Float64Array(segs);
+  const ox = new Float64Array(segs), oz = new Float64Array(segs);
   const ids = [];
   for (let i = 0; i < segs; i++) ids.push(skel.index[`seg${i}`]);
   const st = { head: 0, count: 0, ox: 0, oz: 0, cum: 0, amp: 0.5, init: false, coil: 0, lastYaw: 0 };
@@ -104,12 +105,21 @@ export function createSerpent(core, plan, skel, pose) {
     for (let i = 0; i < segs; i++) {
       const ip = Math.max(0, i - 1), inx = Math.min(segs - 1, i + 1);
       let tx = sx[ip] - sx[inx], tz = sz[ip] - sz[inx];
+      ox[i] = 0; oz[i] = 0;
       const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl;
       const taper = clamp(i / 4, 0, 1) * (1 - 0.3 * i / segs);
       const phase = (sOff[i] / lam) * TAU;
       const off = amp * taper * Math.sin(phase) + 0.012 * (1 - core.move) * Math.sin(core.t * 1.4 - i * 0.45) * taper;
-      // perpendicular (left of the tangent)
-      sx[i] += tz * off; sz[i] -= tx * off;
+      // perpendicular (left of the tangent), applied after all tangents are known
+      ox[i] = tz * off; oz[i] = -tx * off;
+    }
+    for (let i = 0; i < segs; i++) { sx[i] += ox[i]; sz[i] += oz[i]; }
+    // follow-the-leader: keep every segment exactly one link from the one ahead
+    for (let i = 1; i < segs; i++) {
+      const dx = sx[i] - sx[i - 1], dz = sz[i] - sz[i - 1];
+      const d = Math.hypot(dx, dz);
+      if (d > 1e-6) { sx[i] = sx[i - 1] + dx / d * seg; sz[i] = sz[i - 1] + dz / d * seg; }
+      else { sz[i] = sz[i - 1] - seg; sx[i] = sx[i - 1]; }
     }
     // coil: blend into a spiral around a point behind the head
     if (st.coil > 0.001) {

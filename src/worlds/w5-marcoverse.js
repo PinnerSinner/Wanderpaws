@@ -257,7 +257,7 @@ export const W5 = {
   ],
   eggs: makeEggsW5(P),
   goals: {
-    start: 4, goal: 300, stretch: 450, timer: 360, par: 240, growthK: 1.5,
+    start: 4, goal: 300, stretch: 460, timer: 360, par: 240, growthK: 0.75,
     milestones: [10, 25, 60, 150, 350],
     star3: { kind: 'par' },
   },

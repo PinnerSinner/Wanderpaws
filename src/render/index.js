@@ -63,7 +63,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
   const lighting = createLighting(THREE, { scene, mats, sky });
   const particles = createParticles(THREE, { capacity: 2500, cap: 1000 });
   scene.add(particles.mesh);
-  const weather = createWeather(THREE, { capacity: 1100 });
+  const weather = createWeather(THREE, { capacity: 1400 });
   scene.add(weather.mesh);
   const birds = createBirds(THREE, { mats, max: 64 });
   scene.add(birds.mesh);
@@ -107,10 +107,12 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
   const fxCtx = { player: null, heightAt: null, time: 0, trail: null, confetti: 70, waterLevel: null, onMilestone: null, onBump: null };
   const vPos = new THREE.Vector3(), vLook = new THREE.Vector3(), vTmp = new THREE.Vector3(), vTmp2 = new THREE.Vector3();
   const focus = { x: 0, y: 0, z: 0 };
+  const camDir = new THREE.Vector3();
   const textCtx = { width: 1, height: 1, project: null, resolve: null, playerRect: null, visible: true, insetL: 0, insetR: 0, insetT: 0, insetB: 0 };
   const playerRect = { l: 0, t: 0, r: 0, b: 0 };
   let viewW = 1, viewH = 1;
   let lastCamHintT = -1;
+  let weatherOverride = null;
   // stats
   let fps = 0, frameMs = 0, fpsAcc = 0, fpsN = 0, lastDraw = 0, lastTris = 0, cpuMs = 0;
   const statsOut = { fps: 0, drawCalls: 0, triangles: 0, frameMs: 0, cpuMs: 0, tier: tierId, particles: 0, weather: 0, itemTypes: 0, npcs: 0, scene: 'none' };
@@ -238,7 +240,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
       heroFake.idleTime = 0;
     } else if (k === 'showroom') {
       if (!showroomStage) showroomStage = createShowroomStage(THREE, { mats });
-      showroomFraming = p.framing || 'left';
+      showroomFraming = p.framing || 'centre';
       stageRoot.add(showroomStage.group);
       lighting.setPalette(showroomStage.palette);
       mats.setHeightField(null);
@@ -415,7 +417,8 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     particles.update(time);
     fxCtx.time = time;
     if (fxCtx.player) effects.tick(vdt);
-    weather.update(time, camera.position, size, mats.uniforms.wind.value);
+    camera.getWorldDirection(camDir);
+    weather.update(time, camera.position, size, mats.uniforms.wind.value, camDir);
     if (!reduced) mats.uniforms.wind.value.set(0.85 + Math.sin(time * 0.11) * 0.2, 0.35 + Math.sin(time * 0.07) * 0.1);
 
     // floating text
@@ -538,7 +541,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     levelOut.tod = timeOfDayAt(world.timeOfDay, frac);
     levelOut.size = ds;
     levelOut.fogScale = Math.min(60, Math.pow(Math.max(1, ds / Math.max(0.05, world.goals?.start || 0.25)), 0.6));
-    const w = state.weather || null;
+    const w = weatherOverride || state.weather || null;
     const wk = w ? w.kind : 'clear';
     const wi = w ? (w.intensity == null ? 1 : w.intensity) : 0;
     if (weather.kind !== wk) weather.set(wk, wi); else weather.set(wk, wi);
@@ -623,6 +626,8 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     },
     setQuality,
     get quality() { return tierId; },
+    // testing and photo use: force a weather kind ('clear' | 'rain' | 'snow' | 'fog' | 'parade' | 'aurora' | 'datastorm'), null to follow the sim
+    setWeatherOverride(kind, intensity = 1) { weatherOverride = kind ? { kind, intensity } : null; },
     stats() {
       statsOut.fps = fps; statsOut.drawCalls = lastDraw; statsOut.triangles = lastTris; statsOut.frameMs = frameMs;
       statsOut.cpuMs = cpuMs; statsOut.tier = tierId; statsOut.particles = particles.alive(); statsOut.weather = weather.count;

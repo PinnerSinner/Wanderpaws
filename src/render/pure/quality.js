@@ -6,19 +6,19 @@ export const TIERS = Object.freeze({
   low: Object.freeze({
     id: 'low', dprCap: 1, shadows: false, shadowMap: 0, shadowRadius: 0,
     post: false, bloom: false, godRays: false, msaa: 0,
-    particles: 300, weather: 120, birds: 24, icons: 24,
+    particles: 300, weather: 700, birds: 24, icons: 24,
     npcCullPx: 6, swayDetail: 0, waterDetail: 0, clouds: false,
   }),
   medium: Object.freeze({
     id: 'medium', dprCap: 1.5, shadows: true, shadowMap: 1024, shadowRadius: 3,
     post: true, bloom: true, godRays: false, msaa: 4,
-    particles: 1000, weather: 450, birds: 48, icons: 40,
+    particles: 1000, weather: 1100, birds: 48, icons: 40,
     npcCullPx: 4, swayDetail: 1, waterDetail: 1, clouds: true,
   }),
   high: Object.freeze({
     id: 'high', dprCap: 2, shadows: true, shadowMap: 2048, shadowRadius: 4,
     post: true, bloom: true, godRays: true, msaa: 4,
-    particles: 2500, weather: 1100, birds: 48, icons: 64,
+    particles: 2500, weather: 1400, birds: 48, icons: 64,
     npcCullPx: 2, swayDetail: 2, waterDetail: 2, clouds: true,
   }),
 });

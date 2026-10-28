@@ -12,7 +12,7 @@ export function hazeCf(base, pal, amt, shade = true) {
   return (x, y, z, wx, wy, wz, nx, ny, nz) => {
     const c = typeof base === 'function' ? base(x, y, z, wx, wy, wz, nx, ny, nz) : rgb(base);
     const H = rgb(hz);
-    const lit = shade ? 0.78 + 0.3 * Math.max(0, nx * 0.4 + ny * 0.6 + nz * 0.5) : 1;
+    const lit = shade ? 0.66 + 0.45 * Math.max(0, nx * 0.45 + ny * 0.55 + nz * 0.45) : 1;
     return [(c[0] * lit) * (1 - amt) + H[0] * amt, (c[1] * lit) * (1 - amt) + H[1] * amt, (c[2] * lit) * (1 - amt) + H[2] * amt];
   };
 }
@@ -74,7 +74,7 @@ export const w1 = {
       for (let i = 0; i < n; i++) {
         const t = -len / 2 + (i + 0.5) * (len / n);
         const px = z !== 0 ? t : x, pz = z !== 0 ? z : t;
-        b.box(z !== 0 ? len / n + 0.02 : 0.5, 0.3, z !== 0 ? 0.5 : len / n + 0.02, i % 2 ? '#c8c0b0' : '#d8d0c0', { x: px, y: g0(px, pz) + 0.12, z: pz, r: 0.06 });
+        b.box(z !== 0 ? len / n + 0.02 : 0.5, 0.3, z !== 0 ? 0.5 : len / n + 0.02, i % 2 ? '#c8c0b0' : '#d8d0c0', { x: px, y: g0(px, pz) + 0.12, z: pz });
       }
     }
     const r = rngFrom(Math.round(w * 13 + d));
@@ -105,6 +105,12 @@ export const w1 = {
       b.box(W - 1.0, 0.6, 0.08, trim, { y: y + 0.4, z: D / 2 + 1.45 });
       for (const sx of [-1, 1]) b.box(0.3, 1.6, D - 3, glass, { x: sx * (W / 2 + 0.05), y: y + 1.0 });
     }
+    // the back and sides get window bands too (they face the avenue)
+    for (let f = 0; f < 7; f++) {
+      const y = 6.4 + f * 3.1;
+      b.box(W - 3, 1.3, 0.2, '#86b4cc', { y, z: -D / 2 - 0.05 });
+      b.box(W - 2.5, 0.2, 0.5, trim, { y: y - 0.85, z: -D / 2 - 0.2 });
+    }
     // stepped art deco crown with a little flagpole
     b.box(W * 0.6, 3, D * 0.6, col, { y: H + 1.5, r: 0.8 });
     b.box(W * 0.3, 2.5, D * 0.3, trim, { y: H + 4.2, r: 0.5 });
@@ -129,6 +135,11 @@ export const w1 = {
         b.box(4.2, 0.9, 0.08, (f + k) % 3 === 0 ? '#ff9a7a' : '#fbf8f0', { x, y: y + 0.55, z: D / 2 + 1.18 });
       }
       if (f % 3 === 1) b.box(0.6, 0.6, 0.2, '#3cc0c8', { x: 6.8, y: y + 0.5, z: D / 2 + 1.0 }); // a towel on the rail
+    }
+    for (let f = 0; f < floors; f++) {
+      const y = 5.5 + f * 2.85;
+      for (let k = 0; k < 3; k++) b.box(2.6, 1.5, 0.2, '#86b4cc', { x: -5.2 + k * 5.2, y, z: -D / 2 - 0.05 });
+      for (const sx of [-1, 1]) for (let k = 0; k < 2; k++) b.box(0.2, 1.5, 2.6, '#86b4cc', { x: sx * (W / 2 + 0.05), y, z: -3.5 + k * 7 });
     }
     b.box(4, 2.5, 3, '#d8d2c4', { x: 3, y: H + 1.25, z: -2 }); // water tank housing
     b.cyl(1.0, 1.0, 2.0, '#3cc0c8', { x: -4, y: H + 1, z: -3, seg: 10 });

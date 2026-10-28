@@ -58,7 +58,7 @@ export function paintPattern(arr, info, look, ctx, pc) {
         break;
       }
       case 'stripes': {
-        const w = noise3(x * 6, y * 6, z * 6, seed) * 0.5;
+        const w = noise3(x * 6, y * 6, z * 6, seed) * 0.22;
         if (tag === tLeg || tag === tTail || tag === tArm) {
           const v = Math.sin((y + z * 0.3) * 60 + w * 3 + uu[i] * 20);
           m = ss(0.8 - amt * 0.5, 0.9 - amt * 0.5, v);

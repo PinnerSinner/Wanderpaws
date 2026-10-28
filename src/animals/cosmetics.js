@@ -7,7 +7,8 @@
 //   { kind: 'stars', count }      total stars across all worlds
 //   { kind: 'golden', world }     that world's golden item
 // Names are `cosmetic.<id>.name` (src/animals/copy.js). `free: true` items are
-// owned from the start.
+// owned from the start. `hidden: true` items (Gerald's disguises) never show
+// in the shop; use SHOP_COSMETICS or cosmeticsForSlot for menus.
 //
 // Trail and sound ids double as the kind: look.trail = 'bubbles' and
 // look.soundPack = 'kazoo' are what render and audio key off.
@@ -28,6 +29,10 @@ export const COSMETICS = [
   C('tiara', 'head', 250, { colors: ['#e8e8f0', '#ff7ab8'], unlock: { kind: 'stars', count: 9 } }),
   C('crown', 'head', 500, { colors: ['#f2c234', '#d8343a'], unlock: { kind: 'achievement', id: 'absoluteUnit' } }),
   C('bearskin', 'head', 280, { colors: ['#1a1716', '#d8343a'], unlock: { kind: 'egg', egg: 'L11' } }),
+  // Gerald's disguise kit (G9): hidden from the shop, worn by NPCs
+  C('touristhat', 'head', 0, { colors: ['#f2e6c8', '#e0407a'], hidden: true, unlock: { kind: 'never' } }),
+  C('explorer', 'head', 0, { colors: ['#e0cfa0', '#7a5a34'], hidden: true, unlock: { kind: 'never' } }),
+  C('hoodie', 'head', 0, { colors: ['#4a5a7a', '#f4f1ea'], hidden: true, unlock: { kind: 'never' } }),
   // neck
   C('collarred', 'neck', 0, { colors: ['#d8343a', '#f2c234'], free: true }),
   C('collarteal', 'neck', 40, { colors: ['#2ab0a0', '#f2c234'] }),
@@ -71,4 +76,5 @@ export const COSMETIC_SLOTS = ['head', 'neck', 'back', 'face', 'trail', 'sound',
 
 const byId = new Map(COSMETICS.map((c) => [c.id, c]));
 export function getCosmetic(id) { return byId.get(id) || null; }
-export function cosmeticsForSlot(slot) { return COSMETICS.filter((c) => c.slot === slot); }
+export function cosmeticsForSlot(slot) { return COSMETICS.filter((c) => c.slot === slot && !c.hidden); }
+export const SHOP_COSMETICS = COSMETICS.filter((c) => !c.hidden);

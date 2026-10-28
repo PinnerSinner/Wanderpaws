@@ -47,30 +47,32 @@ export function mat3ApplyT(M, v) {
 
 export const IDENT = () => { const m = new Float64Array(9); m[0] = m[4] = m[8] = 1; return m; };
 
-// Analytic 2-bone IK in a bone's parent frame. The chain hangs down (-Y) at
-// rest. (dx, dy, dz) is the target relative to the joint, a and b the segment
-// lengths, bendFwd +1 puts the middle joint forward (+Z), -1 backward.
-// Writes { upperRx, upperRz, lowerRx, reach } into out. Rotation order XYZ:
-// rz tilts sideways first, then rx swings (negative rx swings forward).
+// Analytic 2-bone IK in a bone's parent frame, exact for the bone setup the
+// view uses: the chain hangs down (-Y) at rest, the upper bone rotates by
+// Rx(upperRx) * Rz(upperRz) (three.js 'XYZ' order: tilt sideways, then swing)
+// and the lower bone by Rx(lowerRx). (dx, dy, dz) is the target relative to
+// the joint, a and b the segment lengths. bendFwd +1 puts the middle joint
+// forward (+Z), -1 backward. Writes { upperRx, upperRz, lowerRx, reach }.
 export function solveTwoBone(out, dx, dy, dz, a, b, bendFwd) {
-  const side = Math.atan2(dx, Math.max(1e-6, -dy));
-  const dyz = Math.hypot(dx, dy);
-  let d = Math.hypot(dyz, dz);
-  const dmax = (a + b) * 0.9995, dmin = Math.abs(a - b) + 1e-4;
+  let d = Math.hypot(dx, dy, dz);
   out.reach = d / (a + b);
-  if (d > dmax) d = dmax;
-  if (d < dmin) d = dmin;
-  const phi = Math.atan2(dz, dyz); // forward angle of the joint->target line from straight down
-  let ca = (a * a + d * d - b * b) / (2 * a * d);
-  ca = ca < -1 ? -1 : ca > 1 ? 1 : ca;
-  const alpha = Math.acos(ca);
-  const u = phi + bendFwd * alpha; // upper segment forward angle
-  // knee in the swing plane
-  const kz = a * Math.sin(u), ky = -a * Math.cos(u);
-  const tz = d * Math.sin(phi), ty = -d * Math.cos(phi);
-  const l = Math.atan2(tz - kz, -(ty - ky));
-  out.upperRx = -u;
-  out.upperRz = side;
-  out.lowerRx = -(l - u);
+  const dmax = (a + b) * 0.9995, dmin = Math.abs(a - b) + 1e-4;
+  let sx = dx, sy = dy, sz = dz;
+  if (d < 1e-9) { sx = 0; sy = -1; sz = 0; d = dmin; }
+  const k = (d > dmax ? dmax : d < dmin ? dmin : d) / (d || 1);
+  sx *= k; sy *= k; sz *= k; d *= k;
+  let cl = (d * d - a * a - b * b) / (2 * a * b);
+  cl = cl < -1 ? -1 : cl > 1 ? 1 : cl;
+  const l = (bendFwd >= 0 ? 1 : -1) * Math.acos(cl);
+  const fy = -a - b * Math.cos(l), fz = -b * Math.sin(l);
+  let ss = sx / -fy;
+  ss = ss < -1 ? -1 : ss > 1 ? 1 : ss;
+  const s = Math.asin(ss);
+  const yy = fy * Math.cos(s), zz = fz;
+  out.upperRx = Math.atan2(sz, sy) - Math.atan2(zz, yy);
+  // keep the swing in (-pi, pi]
+  if (out.upperRx > Math.PI) out.upperRx -= Math.PI * 2; else if (out.upperRx <= -Math.PI) out.upperRx += Math.PI * 2;
+  out.upperRz = s;
+  out.lowerRx = l;
   return out;
 }

@@ -4,7 +4,7 @@
 // confetti drizzle and data-storm glyphs. Fog and aurora are handled by the
 // lighting and sky. Slow, soft and photosensitivity-safe.
 
-const KIND = { rain: 0, snow: 1, parade: 2, datastorm: 3 };
+const KIND = { rain: 1, snow: 2, parade: 3, datastorm: 4 };
 
 export function createWeather(THREE, { capacity = 1100 } = {}) {
   const seeds = new Float32Array(capacity * 4);
@@ -23,7 +23,7 @@ export function createWeather(THREE, { capacity = 1100 } = {}) {
     uTime: { value: 0 },
     uCam: { value: new THREE.Vector3() },
     uBox: { value: new THREE.Vector3(30, 18, 30) },
-    uKind: { value: 0 },
+    uKind: { value: 1 },
     uIntensity: { value: 1 },
     uScale: { value: 1 },
     uWind: { value: new THREE.Vector2(0.8, 0.3) },
@@ -47,10 +47,10 @@ void main() {
   vUv = position.xy + 0.5;
   vSeed = aSeed.w;
   if ( aSeed.w > uIntensity ) { gl_Position = vec4( 0.0, 0.0, -2.0, 1.0 ); return; }
-  int k = int( uKind + 0.5 );
+  int k = int( uKind + 0.5 ) - 1;
   vec3 vel; float size; float stretch = 1.0;
-  if ( k == 0 ) { vel = vec3( uWind.x * 2.0, -11.0 - aSeed.y * 4.0, uWind.y * 2.0 ); size = 0.018; stretch = 22.0; }
-  else if ( k == 1 ) { vel = vec3( uWind.x * 0.6, -0.9 - aSeed.y * 0.5, uWind.y * 0.6 ); size = 0.06 + aSeed.x * 0.05; }
+  if ( k == 0 ) { vel = vec3( uWind.x * 2.0, -11.0 - aSeed.y * 4.0, uWind.y * 2.0 ); size = 0.022; stretch = 12.0; }
+  else if ( k == 1 ) { vel = vec3( uWind.x * 0.6, -0.9 - aSeed.y * 0.5, uWind.y * 0.6 ); size = 0.08 + aSeed.x * 0.07; }
   else if ( k == 2 ) { vel = vec3( uWind.x * 0.4, -0.7 - aSeed.y * 0.4, uWind.y * 0.4 ); size = 0.07 + aSeed.z * 0.04; }
   else { vel = vec3( 0.0, -1.1 - aSeed.y * 0.8, 0.0 ); size = 0.16 + aSeed.x * 0.08; }
   vel *= uScale;
@@ -63,20 +63,16 @@ void main() {
   vec3 rel = abs( p - uCam ) / ( box * 0.5 );
   vFade = 1.0 - smoothstep( 0.75, 1.0, max( rel.x, max( rel.y, rel.z ) ) );
   vec4 mvPosition = viewMatrix * vec4( p, 1.0 );
+  // one shared transform; only scalars differ per kind (sturdier on some drivers)
   vec2 c = position.xy;
-  if ( k == 0 ) {
-    // streak along the projected fall direction
-    vec3 vv = ( viewMatrix * vec4( normalize( vel ), 0.0 ) ).xyz;
-    vec2 dir = normalize( vv.xy + vec2( 1e-4 ) );
-    vec2 side = vec2( -dir.y, dir.x );
-    mvPosition.xy += side * c.x * size + dir * c.y * size * stretch;
-  } else {
-    float ang = uTime * ( 0.5 + aSeed.z * 2.0 ) + aSeed.x * 6.28;
-    if ( k == 2 ) c.x *= cos( uTime * 5.0 + aSeed.y * 20.0 );
-    if ( k == 3 ) ang = 0.0;
-    float cs = cos( ang ), sn = sin( ang );
-    mvPosition.xy += vec2( cs * c.x - sn * c.y, sn * c.x + cs * c.y ) * size;
-  }
+  float spinAng = uTime * ( 0.5 + aSeed.z * 2.0 ) + aSeed.x * 6.28;
+  float ang = k == 0 ? clamp( -uWind.x * 0.05, -0.2, 0.2 ) : ( k == 3 ? 0.0 : spinAng );
+  float sx = size;
+  float sy = k == 0 ? size * stretch : size;
+  float flipX = k == 2 ? cos( uTime * 5.0 + aSeed.y * 20.0 ) : 1.0;
+  vec2 cc = vec2( c.x * sx * flipX, c.y * sy );
+  float cs = cos( ang ), sn = sin( ang );
+  mvPosition.xy += vec2( cs * cc.x - sn * cc.y, sn * cc.x + cs * cc.y );
   gl_Position = projectionMatrix * mvPosition;
   #include <fog_vertex>
 }`,
@@ -91,9 +87,9 @@ varying float vFade;
 vec3 hsv( float h ) { return clamp( abs( mod( h * 6.0 + vec3( 0.0, 4.0, 2.0 ), 6.0 ) - 3.0 ) - 1.0, 0.0, 1.0 ); }
 void main() {
   vec2 q = vUv * 2.0 - 1.0;
-  int k = int( uKind + 0.5 );
+  int k = int( uKind + 0.5 ) - 1;
   float a; vec3 col = mix( uColA, uColB, fract( vSeed * 7.31 ) );
-  if ( k == 0 ) { a = ( 1.0 - abs( q.x ) ) * ( 1.0 - q.y * q.y ) * 0.45; }
+  if ( k == 0 ) { a = ( 1.0 - abs( q.x ) ) * ( 1.0 - q.y * q.y ) * 0.6; }
   else if ( k == 1 ) { a = pow( clamp( 1.0 - length( q ), 0.0, 1.0 ), 1.2 ) * 0.95; }
   else if ( k == 2 ) {
     vec2 b = abs( q ) - vec2( 0.8, 0.5 ); a = 1.0 - smoothstep( -0.1, 0.02, max( b.x, b.y ) );
@@ -133,20 +129,22 @@ void main() {
     if (id === undefined || inten <= 0.001) { mesh.visible = false; geo.instanceCount = 0; return; }
     mesh.visible = true;
     uniforms.uKind.value = id;
-    if (id === 0) { uniforms.uColA.value.set('#d8e8ff'); uniforms.uColB.value.set('#ffffff'); }
-    else if (id === 1) { uniforms.uColA.value.set('#ffffff'); uniforms.uColB.value.set('#e6f0ff'); }
-    else if (id === 3) { uniforms.uColA.value.set('#9effd8'); uniforms.uColB.value.set('#d4b8ff'); }
-    const want = id === 0 ? cap : id === 1 ? Math.round(cap * 0.8) : id === 2 ? Math.round(cap * 0.45) : Math.round(cap * 0.3);
+    if (id === 1) { uniforms.uColA.value.set('#8ea6c4'); uniforms.uColB.value.set('#b8c9de'); }
+    else if (id === 2) { uniforms.uColA.value.set('#ffffff'); uniforms.uColB.value.set('#e6f0ff'); }
+    else if (id === 4) { uniforms.uColA.value.set('#9effd8'); uniforms.uColB.value.set('#d4b8ff'); }
+    const want = id === 1 ? cap : id === 2 ? cap : id === 3 ? Math.round(cap * 0.45) : Math.round(cap * 0.3);
     geo.instanceCount = Math.min(capacity, want);
   }
 
-  function update(time, camPos, size, wind) {
+  function update(time, camPos, size, wind, camDir) {
     uniforms.uTime.value = time;
-    uniforms.uCam.value.copy(camPos);
-    // the weather box scales with the player so it always fills the view
-    const sc = Math.max(0.3, Math.min(40, size * 1.2 + 0.4));
+    // the weather box scales with the player and sits in front of the camera,
+    // so nearly all of it is in view
+    const sc = Math.max(0.5, Math.min(60, size * 2.2 + 0.6));
     uniforms.uScale.value = sc;
-    uniforms.uBox.value.set(28 * sc, 16 * sc, 28 * sc);
+    uniforms.uBox.value.set(10 * sc, 7 * sc, 10 * sc);
+    uniforms.uCam.value.copy(camPos);
+    if (camDir) uniforms.uCam.value.addScaledVector(camDir, 4.2 * sc);
     uniforms.uIntensity.value = Math.min(1, Math.max(0, intensity));
     if (wind) uniforms.uWind.value.copy(wind);
   }

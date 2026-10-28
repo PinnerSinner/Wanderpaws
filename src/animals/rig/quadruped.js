@@ -37,6 +37,10 @@ export function createQuadruped(core, plan, skel, pose) {
   const joints = LEGS.map((k) => skel.bones[ri(`leg${k}`)].pos);
   const rest = (n) => skel.bones[ri(n)].pos;
   const R_body = rest('body'), R_hips = rest('hips'), R_chest = rest('chest');
+  const ssd = plan.shortSide || 1;
+  const shortL = (l) => ({ ...l, upper: l.upper * ssd, lower: l.lower * ssd });
+  const specs = [plan.front, ssd !== 1 ? shortL(plan.front) : plan.front, plan.hind, ssd !== 1 ? shortL(plan.hind) : plan.hind];
+  const sideTilt = ssd !== 1 ? Math.atan2((1 - ssd) * (plan.front.upper + plan.front.lower), plan.hipJoint[0] * 2) * 0.9 : 0;
   const fBody = createFrame(), fHips = createFrame(), fChest = createFrame();
   const tmpR = new Float64Array(9);
   const gaitV = new Float64Array(8);
@@ -99,7 +103,7 @@ export function createQuadruped(core, plan, skel, pose) {
     rx += gal * 0.1 * Math.sin(ph * TAU + 1.6);
     rx -= airW * clamp(core.vyN, -1, 1) * 0.22;
     let rz = core.lean.x + (1 - gal) * dbl * 0.035 * move * Math.sin(ph * TAU) + c.tremble * 0.02 * Math.sin(core.t * 47);
-    bodyX.py = py; bodyX.rx = rx; bodyX.rz = rz;
+    bodyX.py = py - sideTilt * 0.08; bodyX.rx = rx; bodyX.rz = rz + sideTilt;
     bodyX.pz = -sit * 0.05 + stretch * 0.0;
     // spine flex in the gallop and the whole-back-end wag
     const flex = gal * (0.12 + 0.1 * (1 - (P.weight ?? 0.5))) * Math.sin(ph * TAU);
@@ -222,7 +226,7 @@ export function createQuadruped(core, plan, skel, pose) {
       const parentPitch = bodyPitch + (front ? chest.rx : hips.rx);
       const flex = lift01[l] * (front ? 1.0 : 0.6) + swimW * 0.6 + airW * clamp01(c.tuck) * 0.8;
       void side;
-      solveLeg(pose, key, fr, j, front ? plan.front : plan.hind, tgt[l * 3], tgt[l * 3 + 1], tgt[l * 3 + 2], parentPitch, flex);
+      solveLeg(pose, key, fr, j, specs[l], tgt[l * 3], tgt[l * 3 + 1], tgt[l * 3 + 2], parentPitch, flex);
     }
 
     // --- neck and head

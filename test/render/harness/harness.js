@@ -66,7 +66,7 @@ const lines = [
 ];
 setTimeout(() => lines.forEach((l, i) => setTimeout(() => renderer.floatingText.add(l), i * 120)), 300);
 if (q.has('milestone')) setTimeout(() => bus.emit(EV.MILESTONE, { type: EV.MILESTONE, index: 1, size: 0.5 }), Number(q.get('milestone')));
-if (q.has('weather')) setTimeout(() => { sim.state.weather.kind = q.get('weather'); sim.state.weather.intensity = 1; }, 50);
+if (q.has('weather')) renderer.setWeatherOverride(q.get('weather'), 1);
 if (q.has('photo')) setTimeout(() => { paused = true; renderer.enterPhoto(); renderer.photo.setFilter(q.get('photo')); }, 1000);
 window.__gp = { renderer, sim, bus, settings, loop, fps: 0 };
 setInterval(() => { window.__gp.fps = renderer.stats().fps; }, 500);

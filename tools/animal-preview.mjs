@@ -23,7 +23,7 @@ const outDir = path.resolve(root, argVal('--out', 'shots/animals'));
 const layout = argVal('--layout', 'grid');
 const { SPECIES_ORDER } = await import(path.join(root, 'src/animals/species.js'));
 const species = (argVal('--species', layout === 'grid' || layout === 'presets' ? SPECIES_ORDER.join(',') : 'oli')).split(',');
-const PASS = ['--t', '--sc', '--angle', '--cells', '--look', '--acc', '--q', '--cols', '--w', '--h', '--kinds'];
+const PASS = ['--t', '--sc', '--angle', '--cells', '--look', '--acc', '--q', '--cols', '--w', '--h', '--kinds', '--disguise'];
 
 const html = path.join(root, '.out/animal-preview.html');
 async function bundle() {

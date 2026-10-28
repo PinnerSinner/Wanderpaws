@@ -131,6 +131,10 @@ export function createAccessories(THREE, mats, S, bones, skel, attach, species) 
     },
     bearskin(c) { const k = kit(); k.add(S.blob(0.1, 16, 14, (v, d) => { v.y = v.y * 1.9 + 0.07; if (d.y < -0.5) v.y = -0.05 + v.y * 0.1; v.multiplyScalar(1 + 0.04 * Math.sin(d.x * 20 + d.y * 13)); }), c[0], T(0, 0.08, -0.01)); k.add(S.torus(0.14, 0.006, 4, 20, Math.PI), c[1], TR(0, -0.03, 0.02, 0, Math.PI / 2, Math.PI)); return { mesh: k.build() }; },
 
+    touristhat(c) { const k = kit(); k.add(S.blob(0.075, 16, 10, (v) => { if (v.y < 0) v.y *= 0.1; v.y *= 0.8; }), c[0], T(0, 0.005, 0)); k.add(S.cylinder(0.12, 0.085, 0.03, 20, true), c[0], T(0, 0.0, 0)); k.add(S.torus(0.077, 0.01, 4, 20), c[1], TR(0, 0.02, 0, Math.PI / 2, 0, 0)); for (let i = 0; i < 3; i++) k.add(S.ellipsoid(0.014, 0.014, 0.01, 6, 4), ['#f2c234', '#ff6fa8', '#ffffff'][i], T(0.07, 0.025 + i * 0.006, 0.02 - i * 0.02)); return { mesh: k.build(), tilt: -0.1 }; },
+    explorer(c) { const k = kit(); k.add(S.blob(0.085, 16, 12, (v) => { if (v.y < 0) v.y *= 0.1; v.y *= 1.0; }), c[0], T(0, 0.005, 0)); k.add(S.ellipsoid(0.13, 0.012, 0.14, 20, 6), c[0], T(0, 0.006, 0)); k.add(S.cylinder(0.087, 0.087, 0.016, 20, true), c[1], T(0, 0.018, 0)); k.add(S.ellipsoid(0.012, 0.012, 0.012, 6, 4), c[1], T(0, 0.09, 0)); return { mesh: k.build() }; },
+    hoodie(c) { const k = kit(); k.add(S.blob(0.15, 18, 12, (v, d) => { if (d.z > 0.45) v.multiplyScalar(0.0001 + (1 - (d.z - 0.45) / 0.55) * 0.9 + 0.1); }), c[0], T(0, -0.09, -0.02)); k.add(S.torus(0.11, 0.015, 6, 22), c[0], TR(0, -0.08, 0.08, 0.2, 0, 0)); for (const s of [1, -1]) k.add(S.limb([s * 0.04, -0.15, 0.12], [s * 0.045, -0.24, 0.12], 0.005, 0.005, 4, 1), c[1]); return { mesh: k.build() }; },
+
     // neck (ring axis along local +Y; holder tilts it along the neck)
     collarred(c) { return collar(c, false); },
     collarteal(c) { return collar(c, false); },

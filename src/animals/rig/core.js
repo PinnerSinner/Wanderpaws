@@ -459,7 +459,7 @@ export function updateCore(core, player, dt) {
 
   // --- gulp bounce: impulse on the rising edge, cheeks follow the decay
   const gulp = clamp01(num(pl.gulp));
-  if (gulp > core.prevGulp + 0.15) core.squash.v -= 1.8 * (0.6 + 0.4 * (1 - sleek));
+  if (gulp > core.prevGulp + 0.15) core.squash.v -= 4.5 * (0.6 + 0.4 * (1 - sleek));
   core.prevGulp = gulp;
   c.gulp = gulp;
   c.jaw += gulp > 0.7 ? (gulp - 0.7) * 2 : 0;
@@ -467,7 +467,7 @@ export function updateCore(core, player, dt) {
 
   // --- landing
   const land = clamp01(num(pl.landImpact));
-  if (land > core.prevLand + 0.2) core.squash.v -= (2.2 + 2.5 * weight) * land;
+  if (land > core.prevLand + 0.2) core.squash.v -= (4.5 + 3 * weight) * land;
   core.prevLand = land;
   c.crouch += land * 0.35;
 

@@ -90,7 +90,7 @@ export function createWaddler(core, plan, skel, pose) {
     }
 
     // wings / flippers: hang at the sides, out for balance, flap, spread
-    const spread = clamp01(c.spread);
+    const spread = clamp01(c.spread + airW * 0.9);
     const flapA = Math.sin(st.flapPh * TAU);
     for (let e = 0; e < 2; e++) {
       const ch = wings[e];

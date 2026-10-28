@@ -179,7 +179,8 @@ function boot() {
   let wasPausePressed = false;
   function step() {
     const raw = input.poll();
-    if (raw.pause && !wasPausePressed && sim) {
+    const uiScreen = ui.current;
+    if (raw.pause && !wasPausePressed && sim && (uiScreen === 'hud' || uiScreen === 'pause' || uiScreen === 'photo')) {
       if (renderer.isPhoto()) { renderer.exitPhoto(); ui.show('pause'); }
       else if (paused) { app.resume(); ui.show('hud'); }
       else if (sim.state.phase !== 'finished') { app.pause(); ui.show('pause'); }
