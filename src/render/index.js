@@ -113,6 +113,7 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
   let viewW = 1, viewH = 1;
   let lastCamHintT = -1;
   let weatherOverride = null;
+  let lagT = 0;
   // stats
   let fps = 0, frameMs = 0, fpsAcc = 0, fpsN = 0, lastDraw = 0, lastTris = 0, cpuMs = 0;
   const statsOut = { fps: 0, drawCalls: 0, triangles: 0, frameMs: 0, cpuMs: 0, tier: tierId, particles: 0, weather: 0, itemTypes: 0, npcs: 0, scene: 'none' };
@@ -476,12 +477,18 @@ export function createRenderer({ canvas, overlay, settings, bus, app }) {
     const ds = Math.max(0.02, p.displaySize || p.size || 0.25);
     pv.displaySize = ds;
 
-    // hero
+    // hero (inside a lag zone the pose updates at a choppy 8 fps, unless reduced motion)
     const o = hero.view.object3d;
-    o.position.set(pv.x, pv.y, pv.z);
-    o.rotation.y = pv.yaw;
-    o.scale.setScalar(ds);
-    try { hero.view.update(pv, dt); } catch (e) { /* tolerate */ }
+    lagT += dt;
+    const choppy = p.lag && !reduced;
+    if (!choppy || lagT >= 0.125) {
+      const hdt = choppy ? lagT : dt;
+      lagT = 0;
+      o.position.set(pv.x, pv.y, pv.z);
+      o.rotation.y = pv.yaw;
+      o.scale.setScalar(ds);
+      try { hero.view.update(pv, hdt); } catch (e) { /* tolerate */ }
+    }
 
     const groundY = level.heightAt ? safeH(level.heightAt, pv.x, pv.z, pv.y) : pv.y;
     heroBlob.position.set(pv.x, groundY + 0.004 + ds * 0.005, pv.z);

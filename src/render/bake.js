@@ -10,7 +10,7 @@ export function bakeObject(THREE, root, mats) {
   const nm = new THREE.Matrix3();
   let hasUv = true;
 
-  const isPlain = (m) => m && !m.map && !m.transparent && m.opacity >= 1 && !m.alphaMap &&
+  const isPlain = (m) => m && !m.userData?.wmBlink && !m.map && !m.transparent && m.opacity >= 1 && !m.alphaMap &&
     (!m.emissive || (m.emissive.r + m.emissive.g + m.emissive.b) * (m.emissiveIntensity ?? 1) < 0.01) &&
     !(m.defines && (m.defines.GP_SWAY !== undefined)) && m.side !== THREE.DoubleSide && !m.isShaderMaterial;
 
@@ -39,6 +39,14 @@ export function bakeObject(THREE, root, mats) {
   const P = new Float32Array(nV * 3), N = new Float32Array(nV * 3), C = new Float32Array(nV * 3);
   const UV = anyTex && hasUv ? new Float32Array(nV * 2) : null;
   const I = nV > 65535 ? new Uint32Array(nI) : new Uint16Array(nI);
+  // extra per-vertex attributes to copy through (e.g. World-meshes' LED 'blink' [rateHz, phase])
+  const EXTRA = ['blink'];
+  const extras = [];
+  for (const name of EXTRA) {
+    let size = 0;
+    for (const b of buckets.values()) for (const p of b.parts) { const a = p.geo.getAttribute(name); if (a) size = a.itemSize; }
+    if (size) extras.push({ name, size, data: new Float32Array(nV * size) });
+  }
   const v = new THREE.Vector3(), n = new THREE.Vector3();
   let vo = 0, io = 0;
   const geo = new THREE.BufferGeometry();
@@ -66,6 +74,10 @@ export function bakeObject(THREE, root, mats) {
         if (col) { r *= col.getX(src); gg *= col.getY(src); bb *= col.getZ(src); }
         C[vo * 3] = r; C[vo * 3 + 1] = gg; C[vo * 3 + 2] = bb;
         if (UV) { UV[vo * 2] = uv ? uv.getX(src) : 0; UV[vo * 2 + 1] = uv ? uv.getY(src) : 0; }
+        for (const e of extras) {
+          const a = g.getAttribute(e.name);
+          for (let c = 0; c < e.size; c++) e.data[vo * e.size + c] = a ? a.getComponent(src, c) : 0;
+        }
         vo++;
       };
       if (g.index) {
@@ -93,6 +105,7 @@ export function bakeObject(THREE, root, mats) {
   geo.setAttribute('normal', new THREE.BufferAttribute(N.subarray(0, vo * 3), 3));
   geo.setAttribute('color', new THREE.BufferAttribute(C.subarray(0, vo * 3), 3));
   if (UV) geo.setAttribute('uv', new THREE.BufferAttribute(UV.subarray(0, vo * 2), 2));
+  for (const e of extras) geo.setAttribute(e.name, new THREE.BufferAttribute(e.data.subarray(0, vo * e.size), e.size));
   geo.setIndex(new THREE.BufferAttribute(I.subarray(0, io), 1));
   geo.computeBoundingBox();
   geo.computeBoundingSphere();

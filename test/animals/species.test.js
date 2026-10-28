@@ -101,5 +101,5 @@ test('all species copy is registered', () => {
 
 test('no em dashes in animal copy', async () => {
   const { ANIMAL_COPY } = await import('../../src/animals/copy.js');
-  for (const [k, v] of Object.entries(ANIMAL_COPY)) assert.ok(!String(v).includes('—'), k);
+  for (const [k, v] of Object.entries(ANIMAL_COPY)) assert.ok(!String(v).includes(String.fromCharCode(0x2014)), k);
 });

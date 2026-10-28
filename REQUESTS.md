@@ -150,3 +150,27 @@ World-meshes is in: `src/worlds/meshes/` builds every catalogue item (registry `
 - **Humans:** each is one rigidly skinned `SkinnedMesh` (plus a glow or translucent mesh for Packet and the hologram), so a crowd costs one draw call per person. Your toon material handles skinning, which I've checked. `update(npc, dt)` only animates bones: render keeps placing `object3d` from the npc record, as `actors.js` does now. Optional 4th argument `buildHuman(THREE, mats, kind, { variant })` varies crowd colours (defaults to a counter).
 - **Scenery:** static parts are merged by material into a 3x3 grid of chunks, swaying parts are instanced (sway weights by local height, so they're never merged), and animated pieces (waterfall, bothy smoke, 404 door, data castle, hologram) stay live, driven by `update(dt, simState)`. The data castle reads `flags['M14.lights']` (0..1) and the 404 door reads `flags['M3.open']`. Distant backdrops (Sugarloaf, mountains, city, horizon dressing) use a fog-free `MeshBasicMaterial` pre-tinted towards `palette.horizon`, so they stay visible past `fogFar`. Typical worlds come to 24 to 45 meshes.
 - **World-data FYI:** W4's `heightAt` rises to around 300 m outside the bounds, and the terrain skirt now follows `heightAt` outwards, so that rim shows as snowy walls on the horizon. That's fine if it's intended. Plaque, DNS and subnet signs render their `textKey` text.
+
+## 2026-10-28 · from Animals · to World-data, Sim, Render (reply: Gerald's disguises, done)
+`createCritterView({ THREE, mats, kind: 'gerald', disguise })` takes a disguise, and the view also has `setDisguise(id)`. Each frame `update(npc)` also reads `npc.disguise` or `npc.mood = 'disguise:<id>'`, so Sim can just copy the cast entry's `params.disguise` onto the npc record and nothing else needs wiring. Supported ids: `touristhat`, `bowler`, `explorer`, `tartan` (tartan scarf), `hoodie`, plus `beret`, `flatcap`, `sunglasses`, `swimring` (H2, Gerald in a rubber ring), `crown`, `moustache`, `partyhat`. Nigel wears his flat cap by default.
+
+## 2026-10-28 · from Animals · to Render (FYI: critter scale and animal view extras)
+- **Critters are real scale in metres** by default, like `buildHuman`: pigeon about 0.32 m long, gull 0.5, Highland cow 2.1, butterfly 0.1 m wingspan, origin at the feet, facing +Z. Don't multiply by `npc.size` unless you want them bigger. `view.metres` gives the length; pass `realScale: false` for unit size.
+- Player animals are unit size (body length about 1) per §2.2, so scale `object3d` by `displaySize`. Draw calls: 2 per animal (body plus outline) plus 1 per worn accessory (up to 5), so 7 worst case. Body triangles at High: 2.7k (penguin) to 6.9k (router-cat), about 5.9k for Oli. `quality: 'low'` gives about 60% of that.
+- `view.rig.pose.fx` exposes optional numbers you can use for particles: `fx.shake` (0..1 while shaking off, good for the droplet burst), `fx.aura` (capybara Chill Aura), `fx.signal` (router-cat Wi-Fi Purr), `fx.glow`. I already draw a simple ring for the aura and signal.
+- Please call `view.update(player, dtReal)` every render frame (not per sim tick); the rig integrates with variable dt and clamps big steps.
+
+## 2026-10-28 · from Animals · to Sim (how the rig reads player state)
+- `shakeT > 0` starts a 1.4 s full-body shake-off (or `idleAnim === 'shake'`). Either works; I restart the clip on the rising edge.
+- `sig.power` with `sig.active === false` is read as "charging" (pounce wiggle-crouch, sniff with nose down for Sniff Boost, Super Hop crouch). `sig.t` with `sig.active` is seconds into the move; I divide by `species.signature.duration`.
+- `barkT < 0.35` plays the bark head-jerk; `gulp` rising by more than 0.15 fires the gulp-bounce; `landImpact` rising by more than 0.2 fires the landing squash.
+- `turnRate` positive means turning left (yaw increasing). If it is absent I derive it from yaw.
+- `species.personality.idleBias` (weights per idleAnim) and `personality.extraIdle` are there if you want the idle director to pick per species.
+
+## 2026-10-28 · from Animals · to Meta, UI (cosmetics)
+- 41 shop cosmetics in `COSMETICS` plus 3 hidden ones (Gerald's disguise kit, `hidden: true`). Use `SHOP_COSMETICS` or `cosmeticsForSlot(slot)` for menus, which skip hidden items.
+- Trail and sound cosmetic ids double as the kind: `look.trail = 'bubbles'|'sparkles'|'hearts'|'teasteam'|'wavetiles'|'datapackets'`, `look.soundPack = 'squeaky'|'kazoo'|'opera'|'robot'`.
+- Badges live in `look.accessories.badge` (an additive key; `validateLook` keeps it) and render as a chest pin.
+- Unlock kinds used: `achievement` (ids I assumed: `absoluteUnit`, `goodBoyMode`, `teaTotal`; tell me yours and I'll rename), `egg` (C1, C8, L11, T11), `finish` (w1, w4, w5), `stars` (9, 15), `golden` (w3), and `never` for the hidden items. `free: true` items should be owned from the start.
+- Copy keys: `cosmetic.<id>.name` and `cosmetic.<id>.desc`, `species.slot.<slot>`, `species.pattern.<pattern>`, `species.colour.<key>` for the dressing room labels, and `species.<id>.thought` (array, `{name}` placeholder) for thought captions. Critter names are `species.critter.<kind>.name`.
+- `applyPreset(species, presetId, currentLook)` in `customise.js` swaps colours and keeps accessories.

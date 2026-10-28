@@ -49,7 +49,7 @@ export function createNpcLayer(THREE, { mats, buildHuman, createCritterView, hum
 
   function make(npc) {
     const kind = npc.kind || 'pigeon';
-    const human = hk.has(kind);
+    const human = npc.human !== undefined ? !!npc.human : hk.has(kind);
     let view = null;
     try {
       if (human && buildHuman) view = buildHuman(THREE, mats, kind);
@@ -79,6 +79,7 @@ export function createNpcLayer(THREE, { mats, buildHuman, createCritterView, hum
         const n = npcs[i];
         if (!n || n.id == null) continue;
         let r = views.get(n.id);
+        if (n.visible === false) { if (r) { r.stamp = stamp; r.view.object3d.visible = false; } continue; }
         if (!r) r = make(n);
         r.stamp = stamp;
         interpEntity(n, alpha, tmp);

@@ -73,6 +73,7 @@ void main() {
   vec2 cc = vec2( c.x * sx * flipX, c.y * sy );
   float cs = cos( ang ), sn = sin( ang );
   mvPosition.xy += vec2( cs * cc.x - sn * cc.y, sn * cc.x + cs * cc.y );
+  vFade *= smoothstep( 0.5 * uScale, 2.2 * uScale, -mvPosition.z );
   gl_Position = projectionMatrix * mvPosition;
   #include <fog_vertex>
 }`,

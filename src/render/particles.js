@@ -66,7 +66,7 @@ void main() {
   vec3 p = aP0.xyz + aV0.xyz * k;
   p.y -= 0.5 * aS.z * age * age;
   float flags = aK.w;
-  float ground = mod( flags, 2.0 );
+  float ground = step( 0.5, mod( flags, 2.0 ) );
   float flip = mod( floor( flags / 4.0 ), 2.0 );
   float pop = mod( floor( flags / 8.0 ), 2.0 );
   float e = pop > 0.5 ? 1.0 - pow( 1.0 - t, 3.0 ) : t;
@@ -76,13 +76,9 @@ void main() {
   if ( flip > 0.5 ) corner.x *= cos( age * 7.0 + aK.z * 3.0 );
   float c = cos( ang ), s = sin( ang );
   vec2 rc = vec2( c * corner.x - s * corner.y, s * corner.x + c * corner.y ) * sz;
-  vec4 mvPosition;
-  if ( ground > 0.5 ) {
-    mvPosition = viewMatrix * vec4( p + vec3( rc.x, 0.0, rc.y ), 1.0 );
-  } else {
-    mvPosition = viewMatrix * vec4( p, 1.0 );
-    mvPosition.xy += rc;
-  }
+  // branch-free: ground decals offset in world XZ, billboards in view space
+  vec4 mvPosition = viewMatrix * vec4( p + ground * vec3( rc.x, 0.0, rc.y ), 1.0 );
+  mvPosition.xy += ( 1.0 - ground ) * rc;
   gl_Position = projectionMatrix * mvPosition;
   vUv = position.xy + 0.5;
   vC = aC;

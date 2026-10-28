@@ -48,6 +48,13 @@ function birdGeometry(THREE) {
   return g;
 }
 
+const KIND_BY_NAME = { pigeon: 0, gull: 1, toucan: 2, butterfly: 3 };
+function kindIndex(b, i) {
+  const raw = b.kind ? b.kind[i] : 0;
+  if (b.kinds && b.kinds[raw] !== undefined) { const k = KIND_BY_NAME[b.kinds[raw]]; return k === undefined ? 0 : k; }
+  return raw % KINDS.length;
+}
+
 export function createBirds(THREE, { mats, max = 64 }) {
   const geo = birdGeometry(THREE);
   const flapArr = new Float32Array(max).fill(1);
@@ -74,15 +81,18 @@ export function createBirds(THREE, { mats, max = 64 }) {
     let colorDirty = false;
     for (let i = 0; i < n; i++) {
       const vx = b.vx ? b.vx[i] : 0, vy = b.vy ? b.vy[i] : 0, vz = b.vz ? b.vz[i] : 0;
-      p.set(b.x[i] - vx * back, b.y[i] - vy * back, b.z[i] - vz * back);
+      if (b.px) { const t = 1 - back * 60; p.set(b.px[i] + (b.x[i] - b.px[i]) * t, b.py[i] + (b.y[i] - b.py[i]) * t, b.pz[i] + (b.z[i] - b.pz[i]) * t); }
+      else p.set(b.x[i] - vx * back, b.y[i] - vy * back, b.z[i] - vz * back);
       const h = Math.hypot(vx, vz);
       const sp = Math.hypot(h, vy);
-      // walking or perched birds fold their wings
-      const target = sp > 1.2 ? 1 : 0;
+      // walking or perched birds fold their wings (sim state: 0 ground, 1 flying, 2 frozen, 3 landing, 4 swooping)
+      const bs = b.state ? b.state[i] : -1;
+      const target = bs >= 0 ? (bs === 1 || bs === 3 || bs === 4 ? 1 : 0) : (sp > 1.2 ? 1 : 0);
       flapArr[i] += (target - flapArr[i]) * 0.15;
-      e.set(-Math.atan2(vy, h + 1e-4) * 0.8 * flapArr[i], h > 0.05 ? Math.atan2(vx, vz) : e.y, 0);
+      const yaw = b.yaw ? b.yaw[i] : (h > 0.05 ? Math.atan2(vx, vz) : e.y);
+      e.set(-Math.atan2(vy, h + 1e-4) * 0.8 * flapArr[i], yaw, 0);
       q.setFromEuler(e);
-      const k = b.kind ? b.kind[i] % KINDS.length : 0;
+      const k = kindIndex(b, i);
       const sc = KINDS[k].scale * scaleMul;
       s.set(sc, sc, sc);
       m4.compose(p, q, s);
